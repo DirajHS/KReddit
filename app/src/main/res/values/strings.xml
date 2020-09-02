@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">KReddit</string>
+    <string name="generic_error_string">Oops, something went wrong&#8230;Tap to retry!!</string>
 </resources>

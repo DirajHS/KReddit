@@ -36,12 +36,26 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
     kapt {
         correctErrorTypes = true
     }
 
     buildFeatures {
         viewBinding true
+        dataBinding true
+    }
+
+    configurations.all {
+        resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+            def requested = details.requested
+            if (requested.group == 'org.jetbrains.kotlin' && requested.name == 'kotlin-reflect') {
+                details.useVersion kotlin_version
+            }
+        }
     }
 }
 
@@ -62,6 +76,7 @@ dependencies {
     //Epoxy
     def epoxy_version = "3.11.0"
     implementation "com.airbnb.android:epoxy:$epoxy_version"
+    implementation "com.airbnb.android:epoxy-paging:$epoxy_version"
     kapt "com.airbnb.android:epoxy-processor:$epoxy_version"
 
     //Retrofit
@@ -69,8 +84,10 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-moshi:$retrofit_version"
 
-    // Coroutines - Retrofit extension
-    implementation "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-experimental-adapter:1.0.0"
+    //Moshi
+    def moshi_version = "1.9.3"
+    implementation "com.squareup.moshi:moshi:${moshi_version}"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:${moshi_version}"
 
     //OkHttp
     def okHttp_version = "4.8.1"
@@ -112,7 +129,18 @@ dependencies {
     def flipper_so_version = "0.9.0"
     debugImplementation "com.facebook.flipper:flipper:${flipper_version}"
     debugImplementation "com.facebook.soloader:soloader:${flipper_so_version}"
+    debugImplementation "com.facebook.flipper:flipper-network-plugin:${flipper_version}"
     releaseImplementation "com.facebook.flipper:flipper-noop:${flipper_version}"
+
+    //Joda Time
+    implementation 'net.danlew:android.joda:2.10.1.1'
+
+    //Lotttie animation
+    def lottie_version = "3.4.2"
+    implementation "com.airbnb.android:lottie:${lottie_version}"
+
+    //Pretty Time
+    implementation 'org.ocpsoft.prettytime:prettytime:4.0.4.Final'
 
     testImplementation 'junit:junit:4.13'
 

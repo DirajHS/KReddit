@@ -1,6 +1,5 @@
 package com.diraj.kreddit.di
 
-import android.app.Application
 import com.diraj.kreddit.KReddit
 import dagger.BindsInstance
 import dagger.Component
@@ -10,13 +9,13 @@ import javax.inject.Singleton
 
 @Singleton
 @Component(modules = [AndroidInjectionModule::class,
-    ActivityBuilderModule::class, NetworkModule::class])
+    ActivityBuilderModule::class, NetworkModule::class, AppModule::class])
 interface AppComponent: AndroidInjector<KReddit> {
 
     @Component.Builder
     interface Builder {
         @BindsInstance
-        fun application(application: Application): Builder
+        fun application(application: KReddit): Builder
         fun build(): AppComponent
     }
 

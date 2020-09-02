@@ -1,7 +1,8 @@
 package com.diraj.kreddit.di
 
-import com.diraj.kreddit.MainActivity
 import com.diraj.kreddit.di.qualifier.PerActivity
+import com.diraj.kreddit.presentation.home.HomeActivity
+import com.diraj.kreddit.presentation.home.di.HomeActivityModule
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
 
@@ -9,6 +10,6 @@ import dagger.android.ContributesAndroidInjector
 abstract class ActivityBuilderModule {
 
     @PerActivity
-    @ContributesAndroidInjector
-    abstract fun provideMainActivity(): MainActivity
+    @ContributesAndroidInjector(modules = [HomeActivityModule::class])
+    abstract fun provideHomeFeedActivity(): HomeActivity
 }

@@ -3,7 +3,6 @@ package com.diraj.kreddit.di
 import com.diraj.kreddit.BuildConfig
 import com.diraj.kreddit.KReddit
 import com.diraj.kreddit.network.ServerResponseErrorInterceptor
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.experimental.CoroutineCallAdapterFactory
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -73,6 +72,7 @@ class NetworkModule {
         builder.connectTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
         builder.addInterceptor(httpLoggingInterceptor)
         builder.addInterceptor(serverResponseErrorInterceptor)
+        //builder.addNetworkInterceptor(FlipperOkhttpInterceptor(kReddit.networkFlipperPlugin))
         return builder.build()
     }
 
@@ -83,7 +83,7 @@ class NetworkModule {
                                 moshi: Moshi): Retrofit {
         return Retrofit.Builder()
             .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .addCallAdapterFactory(CoroutineCallAdapterFactory())
+            //.addCallAdapterFactory(CoroutineCallAdapterFactory())
             .client(okHttpClient)
             .baseUrl(baseURL)
             .build()
