@@ -1,28 +1,34 @@
 package com.diraj.kreddit.network.models
 
+import android.net.Uri
 import android.os.Parcelable
-import com.squareup.moshi.JsonClass
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-@JsonClass(generateAdapter = true)
 data class RedditObjectData (
-    val author: String,
-    val score: Int,
-    val gilded: Int,
-    val created_utc: Long,
-    val permalink: String,
-    val subreddit: String,
-    val subreddit_name_prefixed: String,
-    val title: String,
-    val selftext: String,
-    val url: String,
-    val preview: RedditObjectPreview?,
-    val thumbnail: String,
-    val num_comments: Int,
-    val over_18: Boolean,
-    val pinned: Boolean,
-    val body: String?,
-    val depth: Int?,
-    val ups: Int
-) : Parcelable
+    var author: String? = null,
+    var score: Int?= null,
+    var created_utc: Long?= null,
+    var permalink: String?= null,
+    var subreddit: String?= null,
+    var subreddit_name_prefixed: String?= null,
+    var title: String?= null,
+    var url: String?= null,
+    var preview: RedditObjectPreview?= null,
+    var thumbnail: String?= null,
+    var num_comments: Int?= null,
+    var body: String?= null,
+    var ups: Int?= null,
+    var replies: BaseModel?= null,
+    var id: String?= null
+) : Parcelable {
+
+    fun getDomain(): String? {
+        return try {
+            val host = Uri.parse(url).host
+            if (host?.startsWith("www.") == true) host.substring(4) else host
+        } catch (ex: Exception) {
+            null
+        }
+    }
+}

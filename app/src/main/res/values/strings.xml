@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">KReddit</string>
+    <string name="home_fragment_title">Home</string>
     <string name="generic_error_string">Oops, something went wrong&#8230;Tap to retry!!</string>
+    <string name="empty_data">Please select a feed item from the list to view more info&#8230;</string>
+    <string name="reply">Reply</string>
+    <string name="show_replies">More replies</string>
+    <string name="hide_replies">Hide replies</string>
 </resources>

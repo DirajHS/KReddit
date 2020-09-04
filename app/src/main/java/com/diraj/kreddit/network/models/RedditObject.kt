@@ -1,9 +1,10 @@
 package com.diraj.kreddit.network.models
 
-import com.squareup.moshi.JsonClass
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
-@JsonClass(generateAdapter = true)
+@Parcelize
 data class RedditObject(
     val kind: String,
     val data: RedditObjectData
-)
+) : Parcelable

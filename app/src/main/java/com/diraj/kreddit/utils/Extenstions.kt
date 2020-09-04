@@ -1,5 +1,8 @@
 package com.diraj.kreddit.utils
 
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import java.util.*
 
 fun format(value: Long, suffixes: NavigableMap<Long, String>): String {
@@ -25,3 +28,8 @@ fun Int.getPrettyCount(): String {
 
     return format(this.toLong(), suffixes)
 }
+
+fun <T> androidLazy(initializer: () -> T) : Lazy<T> = lazy(LazyThreadSafetyMode.NONE, initializer)
+
+inline fun <reified T : ViewModel> Fragment.getViewModel(viewModelFactory: ViewModelProvider.Factory): T =
+    ViewModelProvider(this, viewModelFactory)[T::class.java]

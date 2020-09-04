@@ -1,10 +1,11 @@
 package com.diraj.kreddit.network.models
 
-import com.squareup.moshi.JsonClass
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 
-@JsonClass(generateAdapter = true)
+@Parcelize
 data class ListingData(
-    val after: String,
+    val after: String?,
     val before: String?,
     val children: List<RedditObject>
-)
+) : Parcelable

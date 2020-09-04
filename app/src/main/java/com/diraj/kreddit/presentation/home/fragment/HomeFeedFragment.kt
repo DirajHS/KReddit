@@ -6,17 +6,25 @@ import android.os.HandlerThread
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.FragmentNavigatorExtras
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
+import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.LayoutHomeFeedFragmentBinding
 import com.diraj.kreddit.di.Injectable
-import com.diraj.kreddit.network.FeedApiState
+import com.diraj.kreddit.network.RedditResponse
+import com.diraj.kreddit.network.models.RedditObject
 import com.diraj.kreddit.presentation.home.epoxy.controllers.HomeFeedEpoxyController
 import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
+import com.google.android.material.transition.Hold
+import com.google.android.material.transition.MaterialElevationScale
 import timber.log.Timber
 import javax.inject.Inject
 
-class HomeFeedFragment: Fragment(), Injectable {
+class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
     @field:Inject
     lateinit var homeFeedViewModel: HomeFeedViewModel
@@ -25,6 +33,9 @@ class HomeFeedFragment: Fragment(), Injectable {
 
     private lateinit var feedPagedEpoxyController: HomeFeedEpoxyController
     private lateinit var handler: Handler
+
+    private val tabNavHostFragment: NavHostFragment
+        get() = childFragmentManager.findFragmentById(R.id.tablet_nav_container) as NavHostFragment
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,11 +48,17 @@ class HomeFeedFragment: Fragment(), Injectable {
         val handlerThread = HandlerThread("epoxy")
         handlerThread.start()
         handler = Handler(handlerThread.looper)
-        feedPagedEpoxyController = HomeFeedEpoxyController({ homeFeedViewModel.retry() }, handler)
+        feedPagedEpoxyController = HomeFeedEpoxyController({ homeFeedViewModel.retry() }, handler, this)
         feedPagedEpoxyController.isDebugLoggingEnabled = true
 
         layoutHomeFeedFragmentBinding.ervFeed.setController(feedPagedEpoxyController)
         return layoutHomeFeedFragmentBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        postponeEnterTransition()
+        view.doOnPreDraw { startPostponedEnterTransition() }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -50,6 +67,17 @@ class HomeFeedFragment: Fragment(), Injectable {
         observeFeedData()
         observeFeedApiState()
         handleRetryClick()
+    }
+
+    override fun onFeedItemClicked(view: View, redditObject: RedditObject) {
+        exitTransition = Hold().apply {
+            duration = resources.getInteger(R.integer.motion_duration_large).toLong()
+        }
+
+        reenterTransition = MaterialElevationScale(true).apply {
+            duration = resources.getInteger(R.integer.motion_duration_small).toLong()
+        }
+        doNavigateToDestination(view, redditObject)
     }
 
     private fun observeFeedData() {
@@ -65,29 +93,44 @@ class HomeFeedFragment: Fragment(), Injectable {
         homeFeedViewModel.getFeedApiState().observe(viewLifecycleOwner, {
             if(!homeFeedViewModel.listIsEmpty()) {
                 when (it) {
-                    is FeedApiState.Loading -> {
+                    is RedditResponse.Loading -> {
                         feedPagedEpoxyController.error = null
                         feedPagedEpoxyController.isLoading = true
                     }
-                    is FeedApiState.Success -> {
+                    is RedditResponse.Success<*> -> {
                         feedPagedEpoxyController.error = null
                         feedPagedEpoxyController.isLoading = false
                     }
-                    is FeedApiState.Error -> {
+                    is RedditResponse.Error -> {
                         feedPagedEpoxyController.isLoading = false
                         feedPagedEpoxyController.error = it.ex.message
                     }
                 }
             }
 
-            layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it == FeedApiState.Loading)
-            layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it is FeedApiState.Error)
+            layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it == RedditResponse.Loading)
+            layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it is RedditResponse.Error)
         })
     }
 
     private fun handleRetryClick() {
         layoutHomeFeedFragmentBinding.errorView.root.setOnClickListener {
             homeFeedViewModel.retry()
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun doNavigateToDestination(view: View, redditObject: RedditObject) {
+        val isTablet = requireContext().resources.getBoolean(R.bool.isTablet)
+
+        when {
+            isTablet -> {
+                tabNavHostFragment.navController.navigate(HomeFeedDetailsFragmentDirections.actionToHomeFeedDetailsFragment(redditObject))
+            }
+            else -> {
+                val extras = FragmentNavigatorExtras((view to redditObject.data.thumbnail) as Pair<View, String>)
+                findNavController().navigate(HomeFeedFragmentDirections.actionHomeFeedFragmentToHomeFeedDetailsFragment(redditObject), extras)
+            }
         }
     }
 }

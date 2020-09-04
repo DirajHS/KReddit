@@ -1,7 +1,6 @@
 package com.diraj.kreddit.network
 
-import android.content.Intent
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+//import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.diraj.kreddit.KReddit
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -20,13 +19,13 @@ class ServerResponseErrorInterceptor @Inject constructor(var appContext: KReddit
             }
             return response
         } catch (ex: UnknownHostException) {
-            LocalBroadcastManager.getInstance(appContext).sendBroadcast(Intent(INTENT_ACTION_NETWORK))
+            //LocalBroadcastManager.getInstance(appContext).sendBroadcast(Intent(INTENT_ACTION_NETWORK))
             throw ex
         }
     }
 
     private fun handleError() {
-        LocalBroadcastManager.getInstance(appContext).sendBroadcast(Intent(INTENT_ACTION_DEFAULT))
+        //LocalBroadcastManager.getInstance(appContext).sendBroadcast(Intent(INTENT_ACTION_DEFAULT))
     }
 
     companion object {

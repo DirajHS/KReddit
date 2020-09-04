@@ -8,10 +8,11 @@ import com.diraj.kreddit.network.models.RedditObject
 import com.diraj.kreddit.presentation.home.epoxy.models.ErrorEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.FeedEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.LoadingEpoxyViewModel_
+import com.diraj.kreddit.presentation.home.fragment.IFeedClickListener
 
 class HomeFeedEpoxyController(
     private val retryClickListener: View.OnClickListener,
-    asyncDiffHandler: Handler): PagedListEpoxyController<RedditObject>(
+    asyncDiffHandler: Handler, private val feedClickListener: IFeedClickListener): PagedListEpoxyController<RedditObject>(
     defaultModelBuildingHandler, asyncDiffHandler) {
 
     private var isError: Boolean = false
@@ -43,6 +44,7 @@ class HomeFeedEpoxyController(
             FeedEpoxyViewModel_()
                 .id("ItemBindingModel_$currentPosition")
                 .redditObject(item)
+                .feedItemClickListener(feedClickListener)
         } ?: run {
             LoadingEpoxyViewModel_()
                 .id("LoadingEpoxyViewModel_$currentPosition")

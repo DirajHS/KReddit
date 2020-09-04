@@ -3,7 +3,10 @@ package com.diraj.kreddit.di
 import com.diraj.kreddit.BuildConfig
 import com.diraj.kreddit.KReddit
 import com.diraj.kreddit.network.ServerResponseErrorInterceptor
-import com.squareup.moshi.Moshi
+import com.diraj.kreddit.network.models.RedditObjectData
+import com.diraj.kreddit.utils.RedditObjectDataParser
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
 import okhttp3.Cache
@@ -11,17 +14,14 @@ import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 
+
 @Module
 class NetworkModule {
-
-    @Provides
-    @Singleton
-    fun providesMoshi(): Moshi = Moshi.Builder().build()
 
     private fun getOkHttpLogLevel(level: String?): HttpLoggingInterceptor.Level {
         if (level == null) return HttpLoggingInterceptor.Level.NONE
@@ -78,12 +78,21 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun providesKRedditRetrofit(okHttpClient: OkHttpClient,
-                                @Named("REDDIT_BASE_URL") baseURL: String,
-                                moshi: Moshi): Retrofit {
+    fun providesGsonInstance(): Gson {
+        val gsonBuilder = GsonBuilder()
+        gsonBuilder.registerTypeAdapter(RedditObjectData::class.java, RedditObjectDataParser())
+        return gsonBuilder.create()
+    }
+
+    @Provides
+    @Singleton
+    fun providesKRedditRetrofit(
+        okHttpClient: OkHttpClient,
+        @Named("REDDIT_BASE_URL") baseURL: String,
+        gson: Gson
+    ): Retrofit {
         return Retrofit.Builder()
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            //.addCallAdapterFactory(CoroutineCallAdapterFactory())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .client(okHttpClient)
             .baseUrl(baseURL)
             .build()

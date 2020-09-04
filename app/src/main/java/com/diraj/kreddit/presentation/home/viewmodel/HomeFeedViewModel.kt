@@ -34,6 +34,7 @@ class HomeFeedViewModel (val homeFeedDataSourceFactory: HomeFeedDataSourceFactor
         const val PAGE_SIZE = 10
     }
 
+    @Suppress("UNCHECKED_CAST")
     class HomeFeedViewModelFactory constructor(var redditRetrofIt: Retrofit): ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
             return when(modelClass) {
