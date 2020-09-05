@@ -8,6 +8,7 @@ import com.facebook.flipper.plugins.inspector.DescriptorMapping
 import com.facebook.flipper.plugins.inspector.InspectorFlipperPlugin
 import com.facebook.flipper.plugins.network.NetworkFlipperPlugin
 import com.facebook.soloader.SoLoader
+import com.tencent.mmkv.MMKV
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
@@ -27,6 +28,7 @@ class KReddit: Application(), HasAndroidInjector {
     override fun onCreate() {
         super.onCreate()
 
+        MMKV.initialize(this)
         SoLoader.init(this, false)
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())

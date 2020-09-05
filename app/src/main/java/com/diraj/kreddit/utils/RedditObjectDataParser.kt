@@ -61,6 +61,9 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         if (jsonObject.has(URL)) {
             redditContentData.url = (jsonObject[URL].asString)
         }
+        if(jsonObject.has(URL_DESTINATION)) {
+            redditContentData.url_overridden_by_dest = (jsonObject[URL].asString)
+        }
         if (jsonObject.has(REPLIES)) {
             val redditResponseJsonElement = jsonObject[REPLIES]
             if (redditResponseJsonElement.isJsonObject) {
@@ -87,6 +90,7 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         const val UPS = "ups"
         const val SCORES = "score"
         const val URL = "url"
+        const val URL_DESTINATION = "url_overridden_by_dest"
     }
 
 }

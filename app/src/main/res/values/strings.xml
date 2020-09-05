@@ -6,4 +6,8 @@
     <string name="reply">Reply</string>
     <string name="show_replies">More replies</string>
     <string name="hide_replies">Hide replies</string>
+    <string name="login">Login</string>
+    <string name="processing_login">Processing&#8230;</string>
+    <string name="log_out">Log out</string>
+    <string name="reddit_age">Reddit age</string>
 </resources>

@@ -1,5 +1,8 @@
 package com.diraj.kreddit.presentation.home.fragment
 
+import android.content.Intent
+import android.content.Intent.ACTION_VIEW
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -149,6 +152,8 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
         layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObject?.data?.num_comments?.getPrettyCount()
         layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
             .format(redditObject?.data?.created_utc?.times(1000L)?.let { Date(it) })
+
+        handleDomainClick()
     }
 
     private fun renderFeedDetailsImage() {
@@ -169,6 +174,17 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
         } ?: run {
             layoutFeedItemDetailsFragmentBinding.ivDetailImage.visibility = View.GONE
         }
+    }
+
+    private fun handleDomainClick() {
+        redditObject?.data?.url_overridden_by_dest?.let { destinationURL ->
+            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvDomain.setOnClickListener {
+                val intent = Intent(ACTION_VIEW)
+                intent.data = Uri.parse(destinationURL)
+                startActivity(intent)
+            }
+        }
+
     }
 
     companion object {

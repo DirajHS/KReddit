@@ -25,7 +25,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:src="@tools:sample/backgrounds/scenic" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_feed_comments"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cl_feed_details"
+        app:layout_constraintBottom_toBottomOf="parent">
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/iv_detail_title"
             android:layout_width="match_parent"
@@ -36,7 +45,7 @@
             android:textColor="@color/feed_title_color"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/iv_detail_image"
+            app:layout_constraintTop_toTopOf="parent"
             tools:text="You've had a landscaper and a housekeeper since you were born.  The sunshine always kept you warm.  So why see the world?" />
 
         <include
@@ -61,23 +70,13 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/incl_feed_info"/>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/cl_feed_comments"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cl_feed_details"
-        app:layout_constraintBottom_toBottomOf="parent">
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_feed_item_comments"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/incl_feed_actions"
             app:layout_constraintBottom_toBottomOf="parent"
             tools:listitem="@layout/item_expandable_comment"/>
         <include

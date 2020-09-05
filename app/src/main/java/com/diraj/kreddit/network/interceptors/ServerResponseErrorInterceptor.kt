@@ -1,4 +1,4 @@
-package com.diraj.kreddit.network
+package com.diraj.kreddit.network.interceptors
 
 //import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.diraj.kreddit.KReddit

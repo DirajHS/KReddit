@@ -2,9 +2,12 @@ package com.diraj.kreddit.di
 
 import com.diraj.kreddit.BuildConfig
 import com.diraj.kreddit.KReddit
-import com.diraj.kreddit.network.ServerResponseErrorInterceptor
+import com.diraj.kreddit.network.AccessTokenAuthenticator
+import com.diraj.kreddit.network.interceptors.KRedditHeaderInterceptor
+import com.diraj.kreddit.network.interceptors.ServerResponseErrorInterceptor
 import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.utils.RedditObjectDataParser
+import com.facebook.flipper.plugins.network.FlipperOkhttpInterceptor
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -60,7 +63,10 @@ class NetworkModule {
     fun providesOkHttpClient(
         httpLoggingInterceptor: HttpLoggingInterceptor,
         serverResponseErrorInterceptor: ServerResponseErrorInterceptor,
+        kRedditHeaderInterceptor: KRedditHeaderInterceptor,
         connectionPool: ConnectionPool,
+        accessTokenAuthenticator: AccessTokenAuthenticator,
+        kReddit: KReddit,
         cache: Cache
     ): OkHttpClient {
 
@@ -72,7 +78,32 @@ class NetworkModule {
         builder.connectTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
         builder.addInterceptor(httpLoggingInterceptor)
         builder.addInterceptor(serverResponseErrorInterceptor)
-        //builder.addNetworkInterceptor(FlipperOkhttpInterceptor(kReddit.networkFlipperPlugin))
+        builder.addInterceptor(kRedditHeaderInterceptor)
+        builder.addNetworkInterceptor(FlipperOkhttpInterceptor(kReddit.networkFlipperPlugin))
+        builder.authenticator(accessTokenAuthenticator)
+        return builder.build()
+    }
+
+    @Provides
+    @Named("Authenticator")
+    @Singleton
+    fun providesOkHttpClientForAuthenticator(
+        httpLoggingInterceptor: HttpLoggingInterceptor,
+        serverResponseErrorInterceptor: ServerResponseErrorInterceptor,
+        connectionPool: ConnectionPool,
+        kReddit: KReddit,
+        cache: Cache
+    ): OkHttpClient {
+
+        val builder = OkHttpClient.Builder()
+        builder.cache(cache)
+        builder.connectionPool(connectionPool)
+        builder.readTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
+        builder.writeTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
+        builder.connectTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
+        builder.addInterceptor(httpLoggingInterceptor)
+        builder.addInterceptor(serverResponseErrorInterceptor)
+        builder.addNetworkInterceptor(FlipperOkhttpInterceptor(kReddit.networkFlipperPlugin))
         return builder.build()
     }
 
@@ -88,11 +119,25 @@ class NetworkModule {
     @Singleton
     fun providesKRedditRetrofit(
         okHttpClient: OkHttpClient,
-        @Named("REDDIT_BASE_URL") baseURL: String,
+        @Named("REDDIT_BASE_URL_OAUTH") baseURL: String,
         gson: Gson
     ): Retrofit {
         return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create(gson))
+            .client(okHttpClient)
+            .baseUrl(baseURL)
+            .build()
+    }
+
+    @Provides
+    @Named("Authenticator")
+    @Singleton
+    fun providesAuthenticatorKRedditRetrofit(
+        @Named("Authenticator") okHttpClient: OkHttpClient,
+        @Named("REDDIT_BASE_URL") baseURL: String
+    ): Retrofit {
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .baseUrl(baseURL)
             .build()
@@ -103,6 +148,13 @@ class NetworkModule {
     @Named("REDDIT_BASE_URL")
     fun redditBaseUrl(): String {
         return BuildConfig.REDDIT_BASE_URL
+    }
+
+    @Singleton
+    @Provides
+    @Named("REDDIT_BASE_URL_OAUTH")
+    fun redditBaseUrlOauth(): String {
+        return BuildConfig.REDDIT_BASE_URL_OAUTH
     }
 
 

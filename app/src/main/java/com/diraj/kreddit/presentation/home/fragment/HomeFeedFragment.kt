@@ -6,6 +6,7 @@ import android.os.HandlerThread
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -64,6 +65,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Timber.d("onActivityCreated")
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = getString(R.string.home_fragment_title)
         observeFeedData()
         observeFeedApiState()
         handleRetryClick()

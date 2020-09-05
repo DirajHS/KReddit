@@ -14,6 +14,7 @@ data class RedditObjectData (
     var subreddit_name_prefixed: String?= null,
     var title: String?= null,
     var url: String?= null,
+    var url_overridden_by_dest: String? = null,
     var preview: RedditObjectPreview?= null,
     var thumbnail: String?= null,
     var num_comments: Int?= null,
