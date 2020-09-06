@@ -31,7 +31,7 @@ android {
             buildConfigField "String", REDDIT_BASE_URL_OAUTH, "\"https://oauth.reddit.com/\""
             buildConfigField "String", REDDIT_CLIENT_ID, "\"lm2X-f4rPpBshw\""
             buildConfigField "String", REDDIT_REDIRECT_URI, "\"kreddit://authenticate\""
-            buildConfigField "String", REDDIT_LOGIN_SCOPES, "\"identity mysubreddits read\""
+            buildConfigField "String", REDDIT_LOGIN_SCOPES, "\"identity mysubreddits read vote\""
         }
         release {
             minifyEnabled false
@@ -40,7 +40,7 @@ android {
             buildConfigField "String", REDDIT_BASE_URL_OAUTH, "\"https://oauth.reddit.com/\""
             buildConfigField "String", REDDIT_CLIENT_ID, "\"lm2X-f4rPpBshw\""
             buildConfigField "String", REDDIT_REDIRECT_URI, "\"kreddit://authenticate\""
-            buildConfigField "String", REDDIT_LOGIN_SCOPES, "\"identity mysubreddits read\""
+            buildConfigField "String", REDDIT_LOGIN_SCOPES, "\"identity mysubreddits read vote\""
         }
     }
 
@@ -162,6 +162,11 @@ dependencies {
 
     //Rounded ImageView
     implementation "com.makeramen:roundedimageview:2.3.0"
+
+    def room_version = "2.2.5"
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
 
     testImplementation 'junit:junit:4.13'
 

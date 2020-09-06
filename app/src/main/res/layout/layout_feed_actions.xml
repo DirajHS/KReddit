@@ -10,6 +10,7 @@
         android:layout_width="@dimen/dimen_24dp"
         android:layout_height="@dimen/dimen_24dp"
         android:src="@drawable/ic_thumb_up"
+        android:tint="@color/feed_like_background_tint"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
@@ -31,6 +32,7 @@
         android:layout_width="@dimen/dimen_24dp"
         android:layout_height="@dimen/dimen_24dp"
         android:src="@drawable/ic_thumb_down"
+        android:tint="@color/feed_dislike_background_tint"
         android:layout_marginStart="@dimen/dimen_4dp"
         app:layout_constraintStart_toEndOf="@id/tv_ups"
         app:layout_constraintTop_toTopOf="@id/iv_thumb_up"/>

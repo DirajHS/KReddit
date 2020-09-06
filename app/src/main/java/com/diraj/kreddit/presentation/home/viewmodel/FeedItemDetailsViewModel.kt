@@ -12,7 +12,7 @@ import retrofit2.HttpException
 import java.net.UnknownHostException
 import javax.inject.Inject
 
-class FeedItemDetailsViewModel @Inject constructor(val feedItemDetailsRepo: FeedItemDetailsRepo): ViewModel() {
+class FeedItemDetailsViewModel @Inject constructor(private val feedItemDetailsRepo: FeedItemDetailsRepo): ViewModel() {
 
     private var _feedDetailsLiveData = MutableLiveData<RedditResponse>()
     private val feedDetailsLiveData: LiveData<RedditResponse>

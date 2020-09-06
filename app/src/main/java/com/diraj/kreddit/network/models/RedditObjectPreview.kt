@@ -4,6 +4,6 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-data class RedditObjectPreview(
+class RedditObjectPreview(
     val images: List<PreviewImageObject>?
 ) : Parcelable

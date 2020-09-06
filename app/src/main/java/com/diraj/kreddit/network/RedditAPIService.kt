@@ -29,4 +29,6 @@ interface RedditAPIService {
     suspend fun logout(@Header(AUTHORIZATION) authValue: String,
                        @Body postBody: RequestBody) : Response<Any?>
 
+    @POST(value = "api/vote")
+    suspend fun vote(@Body voteRequestBody: RequestBody): Response<Any?>
 }

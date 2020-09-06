@@ -4,7 +4,7 @@ import android.os.Handler
 import android.view.View
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.paging.PagedListEpoxyController
-import com.diraj.kreddit.network.models.RedditObject
+import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.epoxy.models.ErrorEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.FeedEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.LoadingEpoxyViewModel_
@@ -12,7 +12,7 @@ import com.diraj.kreddit.presentation.home.fragment.IFeedClickListener
 
 class HomeFeedEpoxyController(
     private val retryClickListener: View.OnClickListener,
-    asyncDiffHandler: Handler, private val feedClickListener: IFeedClickListener): PagedListEpoxyController<RedditObject>(
+    asyncDiffHandler: Handler, private val feedClickListener: IFeedClickListener): PagedListEpoxyController<RedditObjectData>(
     defaultModelBuildingHandler, asyncDiffHandler) {
 
     private var isError: Boolean = false
@@ -39,7 +39,7 @@ class HomeFeedEpoxyController(
             }
         }
 
-    override fun buildItemModel(currentPosition: Int, item: RedditObject?): EpoxyModel<*> {
+    override fun buildItemModel(currentPosition: Int, item: RedditObjectData?): EpoxyModel<*> {
         return item?.let {
             FeedEpoxyViewModel_()
                 .id("ItemBindingModel_$currentPosition")

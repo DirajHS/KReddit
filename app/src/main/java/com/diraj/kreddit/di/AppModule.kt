@@ -1,9 +1,9 @@
 package com.diraj.kreddit.di
 
-import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
+import com.diraj.kreddit.KReddit
+import com.diraj.kreddit.db.KRedditDB
 import dagger.Module
 import dagger.Provides
-import retrofit2.Retrofit
 import javax.inject.Singleton
 
 @Module
@@ -11,7 +11,7 @@ class AppModule {
 
     @Provides
     @Singleton
-    fun providesHomeFeedViewModelFactory(redditRetrofit: Retrofit): HomeFeedViewModel.HomeFeedViewModelFactory {
-        return HomeFeedViewModel.HomeFeedViewModelFactory(redditRetrofit)
+    fun provideKredditDB(kreddit: KReddit): KRedditDB {
+        return KRedditDB.getDatabase(kreddit)
     }
 }

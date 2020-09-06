@@ -37,7 +37,6 @@ class HomeFeedDataSource (private val redditAPIService: RedditAPIService): PageK
                 feedApiStateLiveData.postValue(RedditResponse.Error(ex)) //TODO: Use interceptor to broadcast no network
             }
         }
-
     }
 
     override fun loadBefore(params: LoadParams<String>, callback: LoadCallback<String, RedditObject>) {}

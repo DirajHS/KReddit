@@ -5,4 +5,8 @@
     <color name="colorAccent">#03DAC5</color>
 
     <color name="feed_title_color">#000000</color>
+    
+    <color name="like_default_color">#80000000</color>
+    <color name="like_true_color">#00c853</color>
+    <color name="like_false_color">#ff3d00</color>
 </resources>

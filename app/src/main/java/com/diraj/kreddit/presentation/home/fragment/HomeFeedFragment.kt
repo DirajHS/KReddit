@@ -16,10 +16,17 @@ import androidx.navigation.fragment.findNavController
 import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.LayoutHomeFeedFragmentBinding
 import com.diraj.kreddit.di.Injectable
+import com.diraj.kreddit.di.ViewModelFactory
 import com.diraj.kreddit.network.RedditResponse
 import com.diraj.kreddit.network.models.RedditObject
+import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.epoxy.controllers.HomeFeedEpoxyController
 import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
+import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
+import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
+import com.diraj.kreddit.utils.androidLazy
+import com.diraj.kreddit.utils.deepCopy
+import com.diraj.kreddit.utils.getViewModel
 import com.google.android.material.transition.Hold
 import com.google.android.material.transition.MaterialElevationScale
 import timber.log.Timber
@@ -28,7 +35,11 @@ import javax.inject.Inject
 class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
     @field:Inject
-    lateinit var homeFeedViewModel: HomeFeedViewModel
+    lateinit var viewModelFactory: ViewModelFactory<HomeFeedViewModel>
+
+    private val homeFeedViewModel by androidLazy {
+        getViewModel<HomeFeedViewModel>(viewModelFactory)
+    }
 
     private lateinit var layoutHomeFeedFragmentBinding: LayoutHomeFeedFragmentBinding
 
@@ -71,15 +82,26 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
         handleRetryClick()
     }
 
-    override fun onFeedItemClicked(view: View, redditObject: RedditObject) {
-        exitTransition = Hold().apply {
-            duration = resources.getInteger(R.integer.motion_duration_large).toLong()
+    override fun onFeedItemClicked(view: View, redditObject: RedditObjectData) {
+        when(view.id) {
+            R.id.iv_thumb_up -> {
+                homeFeedViewModel.vote(CLICKED_LIKE, redditObject.deepCopy())
+            }
+            R.id.iv_thumb_down -> {
+                homeFeedViewModel.vote(CLICKED_DISLIKE, redditObject.deepCopy())
+            }
+            else -> {
+                exitTransition = Hold().apply {
+                    duration = resources.getInteger(R.integer.motion_duration_large).toLong()
+                }
+
+                reenterTransition = MaterialElevationScale(true).apply {
+                    duration = resources.getInteger(R.integer.motion_duration_small).toLong()
+                }
+                doNavigateToDestination(view, RedditObject("", redditObject))
+            }
         }
 
-        reenterTransition = MaterialElevationScale(true).apply {
-            duration = resources.getInteger(R.integer.motion_duration_small).toLong()
-        }
-        doNavigateToDestination(view, redditObject)
     }
 
     private fun observeFeedData() {

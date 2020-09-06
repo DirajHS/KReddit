@@ -1,9 +1,9 @@
 package com.diraj.kreddit.presentation.home.fragment
 
 import android.view.View
-import com.diraj.kreddit.network.models.RedditObject
+import com.diraj.kreddit.network.models.RedditObjectData
 
 interface IFeedClickListener {
 
-    fun onFeedItemClicked(view: View, redditObject: RedditObject)
+    fun onFeedItemClicked(view: View, redditObject: RedditObjectData)
 }

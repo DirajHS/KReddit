@@ -2,9 +2,17 @@ package com.diraj.kreddit.network.models
 
 import android.net.Uri
 import android.os.Parcelable
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.diraj.kreddit.presentation.home.db.typeconverters.BaseModelConverter
+import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectConverter
+import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectPreviewConverter
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
+@Entity
+@TypeConverters(value = [RedditObjectPreviewConverter::class, BaseModelConverter::class, RedditObjectConverter::class])
 data class RedditObjectData (
     var author: String? = null,
     var score: Int?= null,
@@ -20,8 +28,10 @@ data class RedditObjectData (
     var num_comments: Int?= null,
     var body: String?= null,
     var ups: Int?= null,
-    var replies: BaseModel?= null,
-    var id: String?= null
+    var likes: Boolean? = null,
+    var replies: BaseModel ?= null,
+    var id: String?= null,
+    @PrimaryKey var name: String
 ) : Parcelable {
 
     fun getDomain(): String? {

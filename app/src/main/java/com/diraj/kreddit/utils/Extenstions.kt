@@ -1,5 +1,7 @@
 package com.diraj.kreddit.utils
 
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -33,3 +35,15 @@ fun <T> androidLazy(initializer: () -> T) : Lazy<T> = lazy(LazyThreadSafetyMode.
 
 inline fun <reified T : ViewModel> Fragment.getViewModel(viewModelFactory: ViewModelProvider.Factory): T =
     ViewModelProvider(this, viewModelFactory)[T::class.java]
+
+fun <T : Parcelable>T.deepCopy(): T {
+    var parcel: Parcel? = null
+    return try {
+        parcel = Parcel.obtain()
+        parcel.writeParcelable(this, 0)
+        parcel.setDataPosition(0)
+        parcel.readParcelable(this::class.java.classLoader)!!
+    } finally {
+        parcel?.recycle()
+    }
+}

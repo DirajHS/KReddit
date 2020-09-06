@@ -18,9 +18,9 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         typeOfT: Type?,
         context: JsonDeserializationContext?
     ): RedditObjectData {
-        val redditContentData = RedditObjectData()
+        val redditContentData = RedditObjectData(name = json.asJsonObject[NAME].asString)
         val jsonObject = json.asJsonObject
-        redditContentData.id = (jsonObject["id"].asString)
+        redditContentData.id = (jsonObject[ID].asString)
         if (jsonObject.has(TITLE)) {
             redditContentData.title = (jsonObject[TITLE].asString)
         }
@@ -70,6 +70,9 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
                 redditContentData.replies = gson.fromJson(redditResponseJsonElement, BaseModel::class.java)
             }
         }
+        if(jsonObject.has(LIKES) && !jsonObject[LIKES].isJsonNull) {
+            redditContentData.likes = (jsonObject[LIKES].asBoolean)
+        }
         return redditContentData
     }
 
@@ -91,6 +94,8 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         const val SCORES = "score"
         const val URL = "url"
         const val URL_DESTINATION = "url_overridden_by_dest"
+        const val LIKES = "likes"
+        const val NAME = "name"
     }
 
 }

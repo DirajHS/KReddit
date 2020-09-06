@@ -2,50 +2,60 @@ package com.diraj.kreddit.presentation.home.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.diraj.kreddit.network.RedditAPIService
-import com.diraj.kreddit.network.models.RedditObject
-import com.diraj.kreddit.presentation.home.repo.HomeFeedDataSource
-import com.diraj.kreddit.presentation.home.repo.HomeFeedDataSourceFactory
-import retrofit2.Retrofit
+import com.diraj.kreddit.db.KRedditDB
+import com.diraj.kreddit.network.models.RedditObjectData
+import com.diraj.kreddit.presentation.home.repo.HomeFeedBoundaryCallback
+import com.diraj.kreddit.presentation.home.repo.HomeFeedRepo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeFeedViewModel (val homeFeedDataSourceFactory: HomeFeedDataSourceFactory): ViewModel() {
+class HomeFeedViewModel @Inject constructor( private val homeFeedRepo: HomeFeedRepo,
+    private val homeFeedBoundaryCallback: HomeFeedBoundaryCallback,
+    kredditDB: KRedditDB): ViewModel() {
 
-    private val config = PagedList.Config.Builder()
-        .setPageSize(PAGE_SIZE)
-        .setInitialLoadSizeHint(2 * PAGE_SIZE)
-        .setEnablePlaceholders(false)
-        .build()
-
-    val pagedFeedList: LiveData<PagedList<RedditObject>> by lazy {
-        LivePagedListBuilder(homeFeedDataSourceFactory, config).build()
+    init {
+        homeFeedBoundaryCallback.coroutineScope = viewModelScope
     }
 
-    fun getFeedApiState() = homeFeedDataSourceFactory.getFeedApiStateLiveData()
+    private val config = PagedList.Config.Builder()
+        .setEnablePlaceholders(false)
+        .setPageSize(PAGE_SIZE)
+        .setInitialLoadSizeHint(5 * PAGE_SIZE)
+        .setPrefetchDistance(PREFETCH_DISTANCE)
+        .build()
+
+    private val dataSource = kredditDB.kredditPostsDAO().posts()
+
+    val pagedFeedList: LiveData<PagedList<RedditObjectData>> =
+        LivePagedListBuilder(dataSource, config)
+            .setBoundaryCallback(homeFeedBoundaryCallback)
+            .build()
+
+
+    private lateinit var voteJob: Job
+
+    fun getFeedApiState() = homeFeedBoundaryCallback.feedApiStateLiveData
 
     fun listIsEmpty() = pagedFeedList.value?.isEmpty() ?: true
 
-    fun retry() = homeFeedDataSourceFactory.homeFeedDataSource.retry()
+    fun retry() = homeFeedBoundaryCallback.retry()
 
-    companion object {
-        const val PAGE_SIZE = 10
+    fun vote(clickedBtnType: String, redditObject: RedditObjectData) {
+        if(::voteJob.isInitialized) {
+            voteJob.cancel()
+        }
+        voteJob = viewModelScope.launch(context = Dispatchers.IO) {
+            homeFeedRepo.doVote(clickedBtnType, redditObject)
+        }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    class HomeFeedViewModelFactory constructor(var redditRetrofIt: Retrofit): ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return when(modelClass) {
-                HomeFeedViewModel::class.java -> {
-                    val homeFeedDataSourceFactory = HomeFeedDataSourceFactory(HomeFeedDataSource(redditRetrofIt.create(RedditAPIService::class.java)))
-                    val homeFeedViewModel = HomeFeedViewModel(homeFeedDataSourceFactory)
-                    homeFeedViewModel.homeFeedDataSourceFactory.homeFeedDataSource.coroutineScope = homeFeedViewModel.viewModelScope
-                    homeFeedViewModel
-                }
-                else -> throw IllegalArgumentException("Unknown ViewModel class: $modelClass")
-            } as T
-        }
+    companion object {
+        const val PAGE_SIZE = 25
+        const val PREFETCH_DISTANCE = 50
     }
 }
