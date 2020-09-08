@@ -5,9 +5,11 @@ import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
+import com.diraj.kreddit.network.models.post.VoteModel
 import com.diraj.kreddit.presentation.home.db.typeconverters.BaseModelConverter
 import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectConverter
 import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectPreviewConverter
+import com.diraj.kreddit.utils.KRedditConstants
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
@@ -41,6 +43,50 @@ data class RedditObjectData (
             if (host?.startsWith("www.") == true) host.substring(4) else host
         } catch (ex: Exception) {
             null
+        }
+    }
+
+    fun getVoteModelToPost(clickedBtnType: String): VoteModel? {
+        return when(clickedBtnType) {
+            KRedditConstants.CLICKED_LIKE -> {
+                when (likes) {
+                    true -> {
+                        ups = ups?.minus(1)
+                        likes = null
+                        VoteModel(name, "0")
+                    }
+                    false -> {
+                        ups = ups?.plus(2)
+                        likes = true
+                        VoteModel(name, "1")
+                    }
+                    else -> {
+                        ups = ups?.plus(1)
+                        likes = true
+                        VoteModel(name, "1")
+                    }
+                }
+            }
+            KRedditConstants.CLICKED_DISLIKE -> {
+                when (likes) {
+                    false -> {
+                        ups = ups?.plus(1)
+                        likes = null
+                        VoteModel(name, "0")
+                    }
+                    true -> {
+                        ups = ups?.minus(2)
+                        likes = false
+                        VoteModel(name, "-1")
+                    }
+                    else -> {
+                        ups = ups?.minus(1)
+                        likes = false
+                        VoteModel(name, "-1")
+                    }
+                }
+            }
+            else -> null
         }
     }
 }

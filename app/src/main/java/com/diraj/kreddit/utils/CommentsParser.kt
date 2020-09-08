@@ -25,7 +25,10 @@ class CommentsParser(private var commentsResponse: List<BaseModel>) {
             score = redditContentData.score,
             id = redditContentData.id,
             created_utc = redditContentData.created_utc,
-            children = commentList)
+            name = redditContentData.name,
+            children = commentList,
+            ups = redditContentData.ups,
+            likes = redditContentData.likes)
     }
 
     fun parseComments(): Sequence<CommentsData> {

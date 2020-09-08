@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.LayoutFeedItemDetailsFragmentBinding
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
@@ -65,6 +66,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         sharedElementEnterTransition = MaterialContainerTransform().apply {
+            drawingViewId = R.id.home_nav_host_fragment
             duration = SHARED_ELEMENT_TRANSITION_DURATION
             isElevationShadowEnabled = true
             setAllContainerColors(ContextCompat.getColor(requireContext(),android.R.color.white))
@@ -100,7 +102,9 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Timber.d("onActivityCreated")
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = redditObjectData?.subreddit_name_prefixed
+        redditObjectData?.subreddit_name_prefixed?.let { title ->
+            (requireActivity() as AppCompatActivity).supportActionBar?.title = title
+        }
         if(redditObjectData == null) {
             layoutFeedItemDetailsFragmentBinding.emptyFeed.root.isVisible = true
         } else {
@@ -139,11 +143,17 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
                             layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible = true
                     }
                     is RedditResponse.Success<*> -> {
+                        Timber.d("success fetch comments")
+                        sharedViewModel.commentsLikeDisLikeMapping.forEach { entry ->
+                            entry.value.removeObservers(viewLifecycleOwner)
+                        }
                         if(layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible)
                             layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible = false
+                        val groupsList = mutableListOf<ExpandableCommentGroup>()
                         (redditResponse.successData as Sequence<*>).forEach { commentsData ->
-                            groupAdapter.add(ExpandableCommentGroup(commentsData as CommentsData))
+                            groupsList.add(ExpandableCommentGroup(commentsData as CommentsData, sharedViewModel = sharedViewModel, viewLifecycleOwner = viewLifecycleOwner))
                         }
+                        groupAdapter.updateAsync(groupsList)
                     }
                     is RedditResponse.Error -> {
                         Timber.d("observed error fetching comments")

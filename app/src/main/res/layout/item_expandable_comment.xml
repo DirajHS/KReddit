@@ -71,7 +71,8 @@
         android:layout_height="@dimen/dimen_20dp"
         android:layout_marginStart="@dimen/dimen_8dp"
         android:layout_marginEnd="@dimen/dimen_8dp"
-        android:background="@drawable/ic_thumb_down"
+        android:src="@drawable/ic_thumb_down"
+        android:tint="@color/feed_dislike_background_tint"
         app:layout_constraintEnd_toStartOf="@id/separator1"
         app:layout_constraintBottom_toBottomOf="parent" />
 
@@ -92,7 +93,8 @@
         android:layout_height="@dimen/dimen_20dp"
         android:layout_marginStart="@dimen/dimen_8dp"
         android:layout_marginEnd="@dimen/dimen_8dp"
-        android:background="@drawable/ic_thumb_up"
+        android:src="@drawable/ic_thumb_up"
+        android:tint="@color/feed_like_background_tint"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/tv_votes" />
 
