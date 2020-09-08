@@ -1,10 +1,10 @@
 package com.diraj.kreddit.network
 
+import com.diraj.kreddit.network.models.AccessTokenModel
 import com.diraj.kreddit.network.models.BaseModel
 import com.diraj.kreddit.network.models.UserData
 import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION
 import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_KEY
-import com.google.gson.JsonObject
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -20,7 +20,7 @@ interface RedditAPIService {
     @POST(value = "api/v1/access_token")
     suspend fun getAccessToken(@Header(USER_AGENT_KEY) userAgent: String,
                                @Header(AUTHORIZATION) authValue: String,
-                               @Body postBody: RequestBody): JsonObject
+                               @Body postBody: RequestBody): AccessTokenModel
 
     @GET("api/v1/me")
     suspend fun getCurrentUserInfo(): UserData

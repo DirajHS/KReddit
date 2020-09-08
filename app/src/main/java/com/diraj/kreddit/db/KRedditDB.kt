@@ -8,7 +8,7 @@ import com.diraj.kreddit.KReddit
 import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.db.KRedditPostsDAO
 
-@Database(entities = [RedditObjectData::class], version = 1, exportSchema = false)
+@Database(entities = [RedditObjectData::class], version = 2, exportSchema = false)
 abstract class KRedditDB: RoomDatabase() {
 
     abstract fun kredditPostsDAO(): KRedditPostsDAO
@@ -19,7 +19,9 @@ abstract class KRedditDB: RoomDatabase() {
         @Synchronized
         fun getDatabase(applicationContext: KReddit) : KRedditDB {
             if(!::INSTANCE.isInitialized) {
-                INSTANCE = Room.databaseBuilder(applicationContext as Context, KRedditDB::class.java, "kreddit.db").build()
+                INSTANCE = Room.databaseBuilder(applicationContext as Context, KRedditDB::class.java, "kreddit.db")
+                    .fallbackToDestructiveMigration()
+                    .build()
             }
             return INSTANCE
         }

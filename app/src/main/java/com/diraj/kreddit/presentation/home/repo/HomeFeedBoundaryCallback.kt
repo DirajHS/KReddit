@@ -13,15 +13,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import retrofit2.Retrofit
-import timber.log.Timber
 import java.net.UnknownHostException
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
 class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KRedditDB,
                                kredditRetrofit: Retrofit): PagedList.BoundaryCallback<RedditObjectData>() {
-
-    private lateinit var retryExecutable: () -> Unit
 
     private val executor = Executors.newSingleThreadExecutor()
     private val helper = PagingRequestHelper(executor)
@@ -38,15 +35,15 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
             coroutineScope.launch(context = Dispatchers.IO) {
                 try {
                     val feedData = redditAPIService.getHomeFeed(after = null, limit = 25)
-                    kRedditDB.kredditPostsDAO().insert(getRedditFeed(feedData))
+                    insertFeed(feedData)
                     helperCallback.recordSuccess()
                     feedApiStateLiveData.postValue(RedditResponse.Success(null))
                 } catch (ex: HttpException) {
-                    setRetry { onZeroItemsLoaded() }
+                    helperCallback.recordFailure(ex)
                     feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 } catch (ex: UnknownHostException) {
-                    setRetry { onZeroItemsLoaded() }
-                    feedApiStateLiveData.postValue(RedditResponse.Error(ex)) //TODO: Use interceptor to broadcast no network
+                    helperCallback.recordFailure(ex)
+                    feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 }
             }
         }
@@ -59,36 +56,34 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
             coroutineScope.launch(context = Dispatchers.IO) {
                 try {
                     val feedData = redditAPIService.getHomeFeed(after = itemAtEnd.name, limit = 25)
-                    kRedditDB.kredditPostsDAO().insert(getRedditFeed(feedData))
+                    insertFeed(feedData)
                     helperCallback.recordSuccess()
                     feedApiStateLiveData.postValue(RedditResponse.Success(null))
                 } catch (ex: HttpException) {
-                    setRetry { onItemAtEndLoaded(itemAtEnd) }
+                    helperCallback.recordFailure(ex)
                     feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 } catch (ex: UnknownHostException) {
-                    setRetry { onItemAtEndLoaded(itemAtEnd) }
-                    feedApiStateLiveData.postValue(RedditResponse.Error(ex)) //TODO: Use interceptor to broadcast no network
+                    helperCallback.recordFailure(ex)
+                    feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 }
             }
         }
     }
 
-    private fun getRedditFeed(baseModel: BaseModel): List<RedditObjectData> {
+    private fun insertFeed(baseModel: BaseModel) {
         val redditFeedList = mutableListOf<RedditObjectData>()
-        baseModel.data.children.forEach {
-            redditFeedList.add(it.data)
+        val start = kRedditDB.kredditPostsDAO().getNextIndexInSubreddit()
+        baseModel.data.children.mapIndexed { index, redditObject ->
+            val redditObjectData = redditObject.data
+            redditObjectData.indexInResponse = start + index
+            redditObjectData
+        }.forEach {
+                redditFeedList.add(it)
         }
-        return redditFeedList
-    }
-
-    private fun setRetry(retryRef: () -> Unit) {
-        retryExecutable = retryRef
+        kRedditDB.kredditPostsDAO().insert(redditFeedList)
     }
 
     fun retry() {
-        if(::retryExecutable.isInitialized) {
-            Timber.d("calling retry")
-            retryExecutable.invoke()
-        }
+        helper.retryAllFailed()
     }
 }

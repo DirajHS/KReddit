@@ -22,11 +22,13 @@ import com.diraj.kreddit.network.models.RedditObject
 import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.epoxy.controllers.HomeFeedEpoxyController
 import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
+import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.androidLazy
 import com.diraj.kreddit.utils.deepCopy
 import com.diraj.kreddit.utils.getViewModel
+import com.diraj.kreddit.utils.sharedViewModel
 import com.google.android.material.transition.Hold
 import com.google.android.material.transition.MaterialElevationScale
 import timber.log.Timber
@@ -37,8 +39,15 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     @field:Inject
     lateinit var viewModelFactory: ViewModelFactory<HomeFeedViewModel>
 
+    @field:Inject
+    lateinit var sharedViewModelFactory: ViewModelFactory<SharedViewModel>
+
     private val homeFeedViewModel by androidLazy {
         getViewModel<HomeFeedViewModel>(viewModelFactory)
+    }
+
+    private val sharedViewModel by androidLazy {
+        sharedViewModel<SharedViewModel>(sharedViewModelFactory)
     }
 
     private lateinit var layoutHomeFeedFragmentBinding: LayoutHomeFeedFragmentBinding
@@ -85,10 +94,10 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     override fun onFeedItemClicked(view: View, redditObject: RedditObjectData) {
         when(view.id) {
             R.id.iv_thumb_up -> {
-                homeFeedViewModel.vote(CLICKED_LIKE, redditObject.deepCopy())
+                sharedViewModel.vote(CLICKED_LIKE, redditObject.deepCopy())
             }
             R.id.iv_thumb_down -> {
-                homeFeedViewModel.vote(CLICKED_DISLIKE, redditObject.deepCopy())
+                sharedViewModel.vote(CLICKED_DISLIKE, redditObject.deepCopy())
             }
             else -> {
                 exitTransition = Hold().apply {

@@ -36,6 +36,9 @@ fun <T> androidLazy(initializer: () -> T) : Lazy<T> = lazy(LazyThreadSafetyMode.
 inline fun <reified T : ViewModel> Fragment.getViewModel(viewModelFactory: ViewModelProvider.Factory): T =
     ViewModelProvider(this, viewModelFactory)[T::class.java]
 
+inline fun <reified T : ViewModel> Fragment.sharedViewModel(viewModelFactory: ViewModelProvider.Factory): T =
+    ViewModelProvider(requireActivity(), viewModelFactory)[T::class.java]
+
 fun <T : Parcelable>T.deepCopy(): T {
     var parcel: Parcel? = null
     return try {

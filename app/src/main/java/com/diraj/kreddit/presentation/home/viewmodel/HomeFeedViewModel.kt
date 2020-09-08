@@ -8,14 +8,9 @@ import androidx.paging.PagedList
 import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.repo.HomeFeedBoundaryCallback
-import com.diraj.kreddit.presentation.home.repo.HomeFeedRepo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class HomeFeedViewModel @Inject constructor( private val homeFeedRepo: HomeFeedRepo,
-    private val homeFeedBoundaryCallback: HomeFeedBoundaryCallback,
+class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback: HomeFeedBoundaryCallback,
     kredditDB: KRedditDB): ViewModel() {
 
     init {
@@ -36,23 +31,11 @@ class HomeFeedViewModel @Inject constructor( private val homeFeedRepo: HomeFeedR
             .setBoundaryCallback(homeFeedBoundaryCallback)
             .build()
 
-
-    private lateinit var voteJob: Job
-
     fun getFeedApiState() = homeFeedBoundaryCallback.feedApiStateLiveData
 
     fun listIsEmpty() = pagedFeedList.value?.isEmpty() ?: true
 
     fun retry() = homeFeedBoundaryCallback.retry()
-
-    fun vote(clickedBtnType: String, redditObject: RedditObjectData) {
-        if(::voteJob.isInitialized) {
-            voteJob.cancel()
-        }
-        voteJob = viewModelScope.launch(context = Dispatchers.IO) {
-            homeFeedRepo.doVote(clickedBtnType, redditObject)
-        }
-    }
 
     companion object {
         const val PAGE_SIZE = 25

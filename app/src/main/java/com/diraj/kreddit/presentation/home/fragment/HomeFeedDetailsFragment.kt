@@ -21,14 +21,16 @@ import com.diraj.kreddit.di.ViewModelFactory
 import com.diraj.kreddit.network.RedditResponse
 import com.diraj.kreddit.network.models.CommentsData
 import com.diraj.kreddit.network.models.RedditObject
+import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.groupie.ExpandableCommentGroup
 import com.diraj.kreddit.presentation.home.viewmodel.FeedItemDetailsViewModel
+import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
+import com.diraj.kreddit.utils.*
+import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
+import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.KRedditConstants.FEED_DETAILS_MOTION_PROGRESS_KEY
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.REDDIT_OBJECT_PARCELABLE_KEY
-import com.diraj.kreddit.utils.androidLazy
-import com.diraj.kreddit.utils.getPrettyCount
-import com.diraj.kreddit.utils.getViewModel
 import com.google.android.material.transition.MaterialContainerTransform
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -42,8 +44,15 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     @field:Inject
     lateinit var viewModelFactory: ViewModelFactory<FeedItemDetailsViewModel>
 
+    @field:Inject
+    lateinit var sharedViewModelFactory: ViewModelFactory<SharedViewModel>
+
     private val feedItemDetailsViewModel by androidLazy {
         getViewModel<FeedItemDetailsViewModel>(viewModelFactory)
+    }
+
+    private val sharedViewModel by androidLazy {
+        sharedViewModel<SharedViewModel>(sharedViewModelFactory)
     }
 
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
@@ -52,6 +61,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     private lateinit var layoutFeedItemDetailsFragmentBinding: LayoutFeedItemDetailsFragmentBinding
 
     private var redditObject: RedditObject ?= null
+    private var redditObjectData: RedditObjectData ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         sharedElementEnterTransition = MaterialContainerTransform().apply {
@@ -61,6 +71,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
         }
         super.onCreate(savedInstanceState)
         redditObject = arguments?.getParcelable(REDDIT_OBJECT_PARCELABLE_KEY)
+        redditObjectData = redditObject?.data
     }
 
     override fun onCreateView(
@@ -82,14 +93,15 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("onViewCreated")
-        layoutFeedItemDetailsFragmentBinding.mlFeedDetails.transitionName = redditObject?.data?.thumbnail
+        layoutFeedItemDetailsFragmentBinding.mlFeedDetails.transitionName = redditObjectData?.thumbnail
+        redditObjectData?.name?.let { feedItemDetailsViewModel.fetchFeedByName(it) }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Timber.d("onActivityCreated")
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = redditObject?.data?.subreddit_name_prefixed
-        if(redditObject == null) {
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = redditObjectData?.subreddit_name_prefixed
+        if(redditObjectData == null) {
             layoutFeedItemDetailsFragmentBinding.emptyFeed.root.isVisible = true
         } else {
             layoutFeedItemDetailsFragmentBinding.emptyFeed.root.isVisible = false
@@ -117,7 +129,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun fetchAndObserveFeedComments() {
-        redditObject?.data?.permalink?.let {
+        redditObjectData?.permalink?.let {
             feedItemDetailsViewModel.fetchFeedItemDetails(it).observe(viewLifecycleOwner, { redditResponse ->
                 when(redditResponse) {
                     is RedditResponse.Loading -> {
@@ -143,17 +155,22 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun renderFeedDetails() {
-        renderFeedDetailsImage()
-        layoutFeedItemDetailsFragmentBinding.ivDetailTitle.text = redditObject?.data?.title
-        layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvSubreddit.text = redditObject?.data?.subreddit_name_prefixed
-        layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvDomain.text = redditObject?.data?.getDomain()
-        layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvAuthor.text = redditObject?.data?.author
-        layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObject?.data?.ups?.getPrettyCount()
-        layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObject?.data?.num_comments?.getPrettyCount()
-        layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-            .format(redditObject?.data?.created_utc?.times(1000L)?.let { Date(it) })
+        feedItemDetailsViewModel.feedDetailsByNameLiveData.observe(viewLifecycleOwner, { redditObject ->
+            redditObjectData = redditObject
+            setLikeDislikeState()
+            renderFeedDetailsImage()
+            handleLikeDislikeClick()
+            layoutFeedItemDetailsFragmentBinding.ivDetailTitle.text = redditObject.title
+            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvSubreddit.text = redditObject.subreddit_name_prefixed
+            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvDomain.text = redditObject.getDomain()
+            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvAuthor.text = redditObject.author
+            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObject.ups?.getPrettyCount()
+            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObject.num_comments?.getPrettyCount()
+            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
+                .format(redditObject.created_utc?.times(1000L)?.let { Date(it) })
 
-        handleDomainClick()
+            handleDomainClick()
+        })
     }
 
     private fun renderFeedDetailsImage() {
@@ -185,6 +202,37 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             }
         }
 
+    }
+
+    private fun handleLikeDislikeClick() {
+        layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.setOnClickListener {
+            redditObjectData?.deepCopy()?.let { it1 ->
+                sharedViewModel.vote(CLICKED_LIKE, it1)
+            }
+        }
+        layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.setOnClickListener {
+            redditObjectData?.deepCopy()?.let { it1 ->
+                sharedViewModel.vote(CLICKED_DISLIKE, it1)
+            }
+        }
+    }
+
+    private fun setLikeDislikeState() {
+        Timber.d("ups for: ${redditObjectData?.title}: ${redditObjectData?.ups}")
+        when(redditObjectData?.likes) {
+            true -> {
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = true
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = false
+            }
+            false -> {
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = false
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = true
+            }
+            else -> {
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = false
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = false
+            }
+        }
     }
 
     companion object {
