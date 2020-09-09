@@ -5,65 +5,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/tv_subreddit"
-        style="@style/SubRedditText"
-        android:layout_width="wrap_content"
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tv_subreddit_author"
+        android:textSize="@dimen/text_14sp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        android:ellipsize="end"
+        android:lines="1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/ll_domain"
-        app:layout_constraintTop_toTopOf="@id/ll_domain"
-        app:layout_constraintBottom_toBottomOf="@id/ll_domain"
-        tools:text="r/Science" />
-
-    <LinearLayout
-        android:id="@+id/ll_domain"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toEndOf="@id/tv_subreddit"
-        app:layout_constraintEnd_toStartOf="@id/ll_author"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/iv_url"
-            android:layout_width="@dimen/dimen_24dp"
-            android:layout_height="@dimen/dimen_24dp"
-            android:layout_gravity="center_vertical"
-            android:tint="@android:color/holo_blue_dark"
-            android:src="@drawable/ic_link" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="r/Science u/Diraj" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tv_domain"
-            style="@style/LinkUrl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            tools:text="m.imgur.com" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/ll_author"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintStart_toEndOf="@id/ll_domain"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/ll_domain">
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/iv_user"
-            android:layout_width="@dimen/dimen_24dp"
-            android:layout_height="@dimen/dimen_24dp"
-            android:layout_gravity="center_vertical"
-            android:src="@drawable/ic_identity" />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tv_author"
-            style="@style/UserNameText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            tools:text="u/Diraj" />
-    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

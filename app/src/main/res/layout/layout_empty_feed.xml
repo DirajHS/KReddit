@@ -23,11 +23,11 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:lottie_rawRes="@raw/empty_state" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_error"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/feed_title_color"
         android:textSize="@dimen/text_22sp"
         android:gravity="center"
         android:layout_marginStart="@dimen/dimen_12dp"

@@ -73,6 +73,9 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         if(jsonObject.has(LIKES) && !jsonObject[LIKES].isJsonNull) {
             redditContentData.likes = (jsonObject[LIKES].asBoolean)
         }
+        if(jsonObject.has(SELFTEXT_HTML) && !jsonObject[SELFTEXT_HTML].isJsonNull) {
+            redditContentData.selftext_html = (jsonObject[SELFTEXT_HTML].asString)
+        }
         return redditContentData
     }
 
@@ -96,6 +99,7 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         const val URL_DESTINATION = "url_overridden_by_dest"
         const val LIKES = "likes"
         const val NAME = "name"
+        const val SELFTEXT_HTML = "selftext_html"
     }
 
 }

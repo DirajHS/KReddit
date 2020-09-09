@@ -10,9 +10,7 @@
     <string name="processing_login">Processing&#8230;</string>
     <string name="log_out">Log out</string>
     <string name="reddit_age">Reddit age</string>
+    <string name="reddit_author_prefixed">u/%1$s</string>
+    <string name="feature_yet_to_come">Not yet implemented!!!</string>
 
-    <string name="reddit_post_subreddit">%1$s</string>
-    <string name="reddit_post_title">title: %1$s</string>
-    <string name="reddit_post_author">author: %1$s</string>
-    <string name="reddit_post_date">created at %1$s</string>
 </resources>

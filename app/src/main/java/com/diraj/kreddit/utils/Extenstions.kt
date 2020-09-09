@@ -1,7 +1,10 @@
 package com.diraj.kreddit.utils
 
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
+import android.text.Html
+import android.text.Spanned
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -48,5 +51,14 @@ fun <T : Parcelable>T.deepCopy(): T {
         parcel.readParcelable(this::class.java.classLoader)!!
     } finally {
         parcel?.recycle()
+    }
+}
+
+@Suppress("DEPRECATION")
+fun String.fromHtml(): Spanned? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        Html.fromHtml(this, Html.FROM_HTML_MODE_LEGACY)
+    } else {
+        Html.fromHtml(this)
     }
 }

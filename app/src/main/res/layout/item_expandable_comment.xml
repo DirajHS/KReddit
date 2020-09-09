@@ -17,7 +17,7 @@
         android:visibility="gone"
         android:orientation="horizontal"/>
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
         style="@style/UserNameText"
         app:layout_constraintStart_toEndOf="@id/ll_separatorContainer" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_comment"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -36,11 +36,12 @@
         android:layout_margin="@dimen/dimen_16dp"
         tools:text="Hi, I feel you are correct in this regard, wish we had more geniuses like you..."
         style="@style/TextAppearance.AppCompat.Body2"
+        android:fontFamily="sans-serif"
         app:layout_constraintTop_toBottomOf="@id/tv_author"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/ll_separatorContainer" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_reply"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/dimen_20dp"
@@ -65,18 +66,21 @@
         app:layout_constraintEnd_toStartOf="@id/tv_reply"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_down_vote"
         android:layout_width="@dimen/dimen_20dp"
         android:layout_height="@dimen/dimen_20dp"
         android:layout_marginStart="@dimen/dimen_8dp"
         android:layout_marginEnd="@dimen/dimen_8dp"
-        android:src="@drawable/ic_thumb_down"
-        android:tint="@color/feed_dislike_background_tint"
+        android:background="?selectableItemBackgroundBorderless"
+        app:icon="@drawable/ic_dislike"
+        app:iconTint="@color/feed_dislike_background_tint"
+        android:padding="0dp"
+        app:iconSize="@dimen/dimen_20dp"
         app:layout_constraintEnd_toStartOf="@id/separator1"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_votes"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -87,18 +91,21 @@
         style="@style/TextAppearance.AppCompat.Small"
         tools:text="224" />
 
-    <androidx.appcompat.widget.AppCompatImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_upvote"
         android:layout_width="@dimen/dimen_20dp"
         android:layout_height="@dimen/dimen_20dp"
         android:layout_marginStart="@dimen/dimen_8dp"
         android:layout_marginEnd="@dimen/dimen_8dp"
-        android:src="@drawable/ic_thumb_up"
-        android:tint="@color/feed_like_background_tint"
+        android:background="?selectableItemBackgroundBorderless"
+        app:icon="@drawable/ic_like"
+        app:iconTint="@color/feed_like_background_tint"
+        android:padding="0dp"
+        app:iconSize="@dimen/dimen_20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/tv_votes" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/tv_more_replies"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -109,13 +116,18 @@
         style="@style/TextAppearance.AppCompat.Small"
         tools:text="@string/show_replies" />
 
-    <androidx.appcompat.widget.AppCompatImageButton
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_more_replies"
         android:layout_width="@dimen/dimen_20dp"
         android:layout_height="@dimen/dimen_20dp"
         android:layout_marginStart="@dimen/dimen_16dp"
         android:layout_marginEnd="@dimen/dimen_8dp"
-        android:background="@drawable/ic_arrow_down"
+        android:background="?selectableItemBackgroundBorderless"
+        app:icon="@drawable/ic_arrow_down"
+        app:iconTint="@color/like_dislike_default_color"
+        android:padding="0dp"
+        app:iconSize="@dimen/dimen_20dp"
+        app:iconGravity="textStart"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/ll_separatorContainer" />
 

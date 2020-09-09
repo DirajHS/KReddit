@@ -12,7 +12,9 @@
         tools:layout="@layout/layout_home_feed_fragment">
         <action
             android:id="@+id/action_home_feed_fragment_to_home_feed_details_fragment"
-            app:destination="@id/home_feed_details_fragment" >
+            app:destination="@id/home_feed_details_fragment"
+            app:enterAnim="@anim/anim_entry"
+            app:popExitAnim="@anim/anim_exit">
             <argument
                 android:name="redditObject"
                 app:argType="com.diraj.kreddit.network.models.RedditObject" />

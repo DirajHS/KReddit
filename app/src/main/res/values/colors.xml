@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6200EE</color>
-    <color name="colorPrimaryDark">#3700B3</color>
-    <color name="colorAccent">#03DAC5</color>
+    <color name="colorPrimary">#24A0ED</color>
+    <color name="colorPrimaryDark">#0079D3</color>
+    <color name="colorAccent">#FF8717</color>
 
     <color name="feed_title_color">#000000</color>
     
-    <color name="like_default_color">#80000000</color>
-    <color name="like_true_color">#00c853</color>
-    <color name="like_false_color">#ff3d00</color>
+    <color name="like_dislike_default_color">#80000000</color>
+    <color name="like_true_color">#FF0DD3BB</color>
+    <color name="like_false_color">#FFFF4500</color>
+
+    <color name="status_bar_color">#19000000</color>
+    <color name="ripple_color">#1A000000</color>
 </resources>

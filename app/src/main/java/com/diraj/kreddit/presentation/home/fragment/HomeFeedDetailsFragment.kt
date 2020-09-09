@@ -4,6 +4,10 @@ import android.content.Intent
 import android.content.Intent.ACTION_VIEW
 import android.net.Uri
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.text.style.TypefaceSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +19,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.LayoutFeedItemDetailsFragmentBinding
 import com.diraj.kreddit.di.Injectable
@@ -32,6 +37,7 @@ import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.KRedditConstants.FEED_DETAILS_MOTION_PROGRESS_KEY
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.REDDIT_OBJECT_PARCELABLE_KEY
+import com.google.android.material.textview.MaterialTextView
 import com.google.android.material.transition.MaterialContainerTransform
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -69,7 +75,6 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             drawingViewId = R.id.home_nav_host_fragment
             duration = SHARED_ELEMENT_TRANSITION_DURATION
             isElevationShadowEnabled = true
-            setAllContainerColors(ContextCompat.getColor(requireContext(),android.R.color.white))
         }
         super.onCreate(savedInstanceState)
         redditObject = arguments?.getParcelable(REDDIT_OBJECT_PARCELABLE_KEY)
@@ -170,13 +175,14 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             setLikeDislikeState()
             renderFeedDetailsImage()
             handleLikeDislikeClick()
+            redditObject.subreddit_name_prefixed?.let { subReddit -> redditObject.author?.let { author ->
+                setSubredditWithAuthorSpanned(subReddit, String.format(requireContext().getString(R.string.reddit_author_prefixed), author))
+            } }
             layoutFeedItemDetailsFragmentBinding.ivDetailTitle.text = redditObject.title
-            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvSubreddit.text = redditObject.subreddit_name_prefixed
-            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvDomain.text = redditObject.getDomain()
-            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvAuthor.text = redditObject.author
+            layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObject.getDomain()
             layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObject.ups?.getPrettyCount()
             layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObject.num_comments?.getPrettyCount()
-            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
+            (layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime as MaterialTextView).text = PrettyTime(Locale.getDefault())
                 .format(redditObject.created_utc?.times(1000L)?.let { Date(it) })
 
             handleDomainClick()
@@ -193,10 +199,11 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
                 }
                 applyTo(layoutFeedItemDetailsFragmentBinding.clFeedDetails)
             }
-            Glide.with(requireContext())
+            Glide.with(this)
                 .load(source.url?.replace(FEED_THUMBNAIL_URL_REPLACEMENT_KEY, ""))
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .thumbnail(0.1f)
+                .transition(DrawableTransitionOptions.withCrossFade())
                 .into(layoutFeedItemDetailsFragmentBinding.ivDetailImage)
         } ?: run {
             layoutFeedItemDetailsFragmentBinding.ivDetailImage.visibility = View.GONE
@@ -205,7 +212,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     private fun handleDomainClick() {
         redditObject?.data?.url_overridden_by_dest?.let { destinationURL ->
-            layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvDomain.setOnClickListener {
+            layoutFeedItemDetailsFragmentBinding.llDomain.setOnClickListener {
                 val intent = Intent(ACTION_VIEW)
                 intent.data = Uri.parse(destinationURL)
                 startActivity(intent)
@@ -243,6 +250,31 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
                 layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = false
             }
         }
+    }
+
+    private fun setSubredditWithAuthorSpanned(author: String, user: String) {
+        val bullet = "\u25CF"
+        val combinedText = "$author $bullet $user"
+        val spannable = SpannableString(combinedText)
+        spannable.setSpan(
+            TypefaceSpan("sans-serif"),
+            0,
+            author.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannable.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)),
+            0,
+            author.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        spannable.setSpan(
+            TypefaceSpan("sans-serif-light"),
+            author.length + 1,
+            combinedText.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+        layoutFeedItemDetailsFragmentBinding.inclFeedInfo.tvSubredditAuthor.text = spannable
     }
 
     companion object {

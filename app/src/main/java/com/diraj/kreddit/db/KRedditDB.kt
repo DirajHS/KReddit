@@ -8,7 +8,7 @@ import com.diraj.kreddit.KReddit
 import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.db.KRedditPostsDAO
 
-@Database(entities = [RedditObjectData::class], version = 2, exportSchema = false)
+@Database(entities = [RedditObjectData::class], version = 3, exportSchema = false)
 abstract class KRedditDB: RoomDatabase() {
 
     abstract fun kredditPostsDAO(): KRedditPostsDAO

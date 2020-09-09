@@ -33,6 +33,7 @@ data class RedditObjectData (
     var likes: Boolean? = null,
     var replies: BaseModel ?= null,
     var id: String?= null,
+    var selftext_html: String? = null,
     var indexInResponse: Int = -1,
     @PrimaryKey var name: String
 ) : Parcelable {

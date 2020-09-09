@@ -1,10 +1,8 @@
 package com.diraj.kreddit.presentation.home.groupie
 
-import android.os.Build
-import android.text.Html
-import android.text.Spanned
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
@@ -14,6 +12,7 @@ import com.diraj.kreddit.databinding.ItemExpandableCommentBinding
 import com.diraj.kreddit.network.models.CommentsData
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
 import com.diraj.kreddit.utils.KRedditConstants
+import com.diraj.kreddit.utils.fromHtml
 import com.diraj.kreddit.utils.getPrettyCount
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.ExpandableItem
@@ -42,7 +41,7 @@ class ExpandableCommentItem constructor(
         addingDepthViews(viewHolder)
 
         expandableCommentBinding.tvAuthor.text = comment.author
-        expandableCommentBinding.tvComment.text = fromHtml(comment.body)
+        expandableCommentBinding.tvComment.text = comment.body?.fromHtml()
         expandableCommentBinding.tvVotes.text = comment.ups?.getPrettyCount()
         toggleRepliesText()
         viewHolder.itemView.apply {
@@ -53,6 +52,7 @@ class ExpandableCommentItem constructor(
         }
         setLikeDislikeClickListener()
         setLikeDislikeState(comment)
+        setReplyClickListener()
         sharedViewModel.commentsLikeDisLikeMapping[comment.name]?.observe(viewLifecycleOwner, commentsLikesDislikesObserver)
     }
 
@@ -95,11 +95,11 @@ class ExpandableCommentItem constructor(
             expandableCommentBinding.btnMoreReplies.isVisible = true
             expandableCommentBinding.tvMoreReplies.isVisible = true
             if(!expandableGroup.isExpanded) {
-                expandableCommentBinding.btnMoreReplies.background = ContextCompat
+                expandableCommentBinding.btnMoreReplies.icon = ContextCompat
                     .getDrawable(expandableCommentBinding.root.context, R.drawable.ic_arrow_down)
                 expandableCommentBinding.tvMoreReplies.text = expandableCommentBinding.root.context.getString(R.string.show_replies)
             } else {
-                expandableCommentBinding.btnMoreReplies.background = ContextCompat
+                expandableCommentBinding.btnMoreReplies.icon = ContextCompat
                     .getDrawable(expandableCommentBinding.root.context, R.drawable.ic_arrow_up)
                 expandableCommentBinding.tvMoreReplies.text = expandableCommentBinding.root.context.getString(R.string.hide_replies)
             }
@@ -109,30 +109,25 @@ class ExpandableCommentItem constructor(
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun fromHtml(source: String?): Spanned? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(source, Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            Html.fromHtml(source)
-        }
-    }
-
     private fun setLikeDislikeState(commentsData: CommentsData) {
         Timber.d("ups for: ${commentsData.author}: ${commentsData.ups} ${commentsData.likes}")
         expandableCommentBinding.tvVotes.text = commentsData.ups?.getPrettyCount()
+        val context = expandableCommentBinding.root.context
         when(commentsData.likes) {
             true -> {
                 expandableCommentBinding.btnUpvote.isSelected = true
                 expandableCommentBinding.btnDownVote.isSelected = false
+                expandableCommentBinding.tvVotes.setTextColor(ContextCompat.getColor(context, R.color.like_true_color))
             }
             false -> {
                 expandableCommentBinding.btnUpvote.isSelected = false
                 expandableCommentBinding.btnDownVote.isSelected = true
+                expandableCommentBinding.tvVotes.setTextColor(ContextCompat.getColor(context, R.color.like_false_color))
             }
             else -> {
                 expandableCommentBinding.btnUpvote.isSelected = false
                 expandableCommentBinding.btnDownVote.isSelected = false
+                expandableCommentBinding.tvVotes.setTextColor(ContextCompat.getColor(context, R.color.feed_title_color))
             }
         }
     }
@@ -145,6 +140,13 @@ class ExpandableCommentItem constructor(
         expandableCommentBinding.btnDownVote.setOnClickListener {
             Timber.d("clicked dislike")
             sharedViewModel.voteComment(KRedditConstants.CLICKED_DISLIKE, comment).observe(viewLifecycleOwner, commentsLikesDislikesObserver)
+        }
+    }
+
+    private fun setReplyClickListener() {
+        val context = expandableCommentBinding.root.context
+        expandableCommentBinding.tvReply.setOnClickListener {
+            Toast.makeText(context, context.getString(R.string.feature_yet_to_come), Toast.LENGTH_SHORT).show()
         }
     }
 
