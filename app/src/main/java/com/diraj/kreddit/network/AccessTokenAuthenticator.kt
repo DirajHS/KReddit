@@ -18,6 +18,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okhttp3.Route
 import okio.IOException
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import timber.log.Timber
 import javax.inject.Inject
@@ -75,6 +76,8 @@ class AccessTokenAuthenticator @Inject constructor(
                 UserSession.open(accessToken, refreshToken!!)
                 return@runBlocking accessToken
             }
+        } catch (ex: HttpException) {
+          return null
         } catch (ex: IOException) {
             return null
         }

@@ -13,12 +13,12 @@ import javax.inject.Inject
 class FeedItemDetailsViewModel @Inject constructor(private val feedItemDetailsRepo: FeedItemDetailsRepo): ViewModel() {
 
     private var _feedDetailsLiveData = MutableLiveData<RedditResponse>()
-    private val feedDetailsLiveData: LiveData<RedditResponse>
+    val feedDetailsLiveData: LiveData<RedditResponse>
         get() = _feedDetailsLiveData
 
     lateinit var feedDetailsByNameLiveData: LiveData<RedditObjectData>
 
-    fun fetchFeedItemDetails(permalink: String): LiveData<RedditResponse> {
+    fun fetchFeedItemDetails(permalink: String) {
         viewModelScope.launch {
             _feedDetailsLiveData.postValue(RedditResponse.Loading)
             try {
@@ -33,7 +33,6 @@ class FeedItemDetailsViewModel @Inject constructor(private val feedItemDetailsRe
                 return@launch
             }
         }
-        return feedDetailsLiveData
     }
 
     fun fetchFeedByName(feedName: String) {

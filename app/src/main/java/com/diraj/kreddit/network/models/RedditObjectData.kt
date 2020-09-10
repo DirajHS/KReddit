@@ -9,12 +9,14 @@ import com.diraj.kreddit.network.models.post.VoteModel
 import com.diraj.kreddit.presentation.home.db.typeconverters.BaseModelConverter
 import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectConverter
 import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectPreviewConverter
+import com.diraj.kreddit.presentation.home.db.typeconverters.ResolutionConverters
 import com.diraj.kreddit.utils.KRedditConstants
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 @Entity
-@TypeConverters(value = [RedditObjectPreviewConverter::class, BaseModelConverter::class, RedditObjectConverter::class])
+@TypeConverters(value = [RedditObjectPreviewConverter::class, BaseModelConverter::class, RedditObjectConverter::class,
+    ResolutionConverters::class])
 data class RedditObjectData (
     var author: String? = null,
     var score: Int?= null,

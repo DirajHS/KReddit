@@ -3,10 +3,7 @@
 
     <item android:drawable="@android:color/white" />
 
-    <item
-        android:width="@dimen/dimen_156dp"
-        android:height="@dimen/dimen_72dp"
-        android:gravity="center"
-        android:drawable="@drawable/ic_reddit_lockup_onwhite">
+    <item>
+        <bitmap android:src="@drawable/ic_reddit_png_logo" android:gravity="center" />
     </item>
 </layer-list>

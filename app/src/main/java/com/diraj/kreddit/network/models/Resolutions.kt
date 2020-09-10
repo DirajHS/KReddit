@@ -4,7 +4,8 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class PreviewImageObject(
-    val source: PreviewImage?,
-    val resolutions: List<Resolutions>?
+data class Resolutions(
+    val url: String?,
+    val width: Int,
+    val height: Int
 ) : Parcelable

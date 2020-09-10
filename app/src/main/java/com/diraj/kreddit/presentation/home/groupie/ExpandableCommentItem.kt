@@ -38,9 +38,10 @@ class ExpandableCommentItem constructor(
 
     override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         expandableCommentBinding = ItemExpandableCommentBinding.bind(viewHolder.itemView)
+        val context = expandableCommentBinding.root.context
         addingDepthViews(viewHolder)
 
-        expandableCommentBinding.tvAuthor.text = comment.author
+        expandableCommentBinding.tvAuthor.text = String.format(context.getString(R.string.reddit_author_prefixed), comment.author)
         expandableCommentBinding.tvComment.text = comment.body?.fromHtml()
         expandableCommentBinding.tvVotes.text = comment.ups?.getPrettyCount()
         toggleRepliesText()

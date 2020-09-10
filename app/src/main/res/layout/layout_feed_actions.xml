@@ -77,12 +77,12 @@
         android:id="@+id/tv_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/iv_thumb_up"
-        app:layout_constraintBottom_toBottomOf="@id/iv_thumb_up"
-        app:layout_constraintEnd_toEndOf="parent"
         android:fontFamily="sans-serif"
         android:textSize="@dimen/text_12sp"
         android:textColor="@color/feed_title_color"
-        tools:text="3 hours ago"/>
+        android:layout_marginStart="@dimen/dimen_4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="86"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

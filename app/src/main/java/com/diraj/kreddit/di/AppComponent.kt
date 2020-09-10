@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 @Singleton
 @Component(modules = [AndroidInjectionModule::class,
-    ActivityBuilderModule::class, NetworkModule::class, AppModule::class])
+    ActivityBuilderModule::class, NetworkModule::class, AppModule::class, GlideDaggerModule::class])
 interface AppComponent: AndroidInjector<KReddit> {
 
     @Component.Builder

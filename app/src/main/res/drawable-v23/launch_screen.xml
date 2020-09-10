@@ -1,0 +1,12 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+
+    <item android:drawable="@android:color/white" />
+
+    <item
+        android:width="@dimen/dimen_156dp"
+        android:height="@dimen/dimen_72dp"
+        android:gravity="center"
+        android:drawable="@drawable/ic_reddit_lockup_onwhite">
+    </item>
+</layer-list>

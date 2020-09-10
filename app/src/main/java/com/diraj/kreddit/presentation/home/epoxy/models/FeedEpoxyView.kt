@@ -12,22 +12,19 @@ import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import com.airbnb.epoxy.AfterPropsSet
-import com.airbnb.epoxy.CallbackProp
-import com.airbnb.epoxy.ModelProp
-import com.airbnb.epoxy.ModelView
+import androidx.core.view.doOnNextLayout
+import com.airbnb.epoxy.*
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.FeedListItemBinding
 import com.diraj.kreddit.network.models.PreviewImage
 import com.diraj.kreddit.network.models.RedditObjectData
+import com.diraj.kreddit.network.models.Resolutions
 import com.diraj.kreddit.presentation.home.fragment.IFeedClickListener
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.fromHtml
 import com.diraj.kreddit.utils.getPrettyCount
-import com.google.android.material.textview.MaterialTextView
 import org.ocpsoft.prettytime.PrettyTime
 import timber.log.Timber
 import java.util.*
@@ -51,17 +48,20 @@ class FeedEpoxyView @JvmOverloads constructor(
     private val feedListItemBinding: FeedListItemBinding =
         FeedListItemBinding.inflate(LayoutInflater.from(context), this, true)
 
+    private lateinit var defaultImageViewConstraintSet: ConstraintSet
+
     @AfterPropsSet
     fun renderFeedItem() {
         feedListItemBinding.tvTitle.text = redditObject.title?.fromHtml()
         redditObject.subreddit_name_prefixed?.let { subReddit -> redditObject.author?.let { author ->
             setSubredditWithAuthorSpanned(subReddit, String.format(context.getString(R.string.reddit_author_prefixed), author))
         } }
-        (feedListItemBinding.inclFeedActions.tvTime as MaterialTextView).text = PrettyTime(Locale.getDefault())
+        feedListItemBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
             .format(redditObject.created_utc?.times(1000L)?.let { Date(it) })
 
         redditObject.preview?.images?.first()?.source?.let { source ->
-            renderThumbnail(source)
+            redditObject.preview?.images?.first()?.resolutions
+                ?.let { resolutions -> processPreview(resolutions, source) }
         } ?: run {
             feedListItemBinding.ivFeedImage.visibility = View.GONE
         }
@@ -75,25 +75,66 @@ class FeedEpoxyView @JvmOverloads constructor(
         setLikeDislikeClickListener()
     }
 
-    private fun renderThumbnail(source: PreviewImage) {
+    @OnViewRecycled
+    fun onViewRecycled() {
+        if(::defaultImageViewConstraintSet.isInitialized)
+            defaultImageViewConstraintSet.applyTo(feedListItemBinding.clFeedItem)
+    }
+
+    private fun processPreview(resolutions: List<Resolutions>, defaultSource: PreviewImage) {
         feedListItemBinding.ivFeedImage.visibility = View.VISIBLE
+        /*
+        The general idea here is to reuse the recycled views as efficiently as possible. So, if the
+        view was rendered for any previous item, the width would be available, so we can go ahead
+        and draw the preview with closest resolution, otherwise we draw when the view is drawn.
+        This way we can load image as per the available resolution optimizing memory usage.
+         */
+        Timber.d("measured width: ${feedListItemBinding.ivFeedImage.measuredWidth}")
+        if (feedListItemBinding.ivFeedImage.measuredWidth > 0) {
+            Timber.d("view is recycled, so set the image directly")
+            defaultImageViewConstraintSet = ConstraintSet()
+            defaultImageViewConstraintSet.clone(feedListItemBinding.clFeedItem)
+            val defaultImageViewWidth = feedListItemBinding.ivFeedImage.measuredWidth
+            renderThumbnail(defaultSource, resolutions, defaultImageViewWidth)
+        } else {
+            feedListItemBinding.ivFeedImage.doOnNextLayout {
+                defaultImageViewConstraintSet = ConstraintSet()
+                defaultImageViewConstraintSet.clone(feedListItemBinding.clFeedItem)
+                val defaultImageViewWidth = feedListItemBinding.ivFeedImage.measuredWidth
+                renderThumbnail(defaultSource, resolutions, defaultImageViewWidth)
+            }
+        }
+
+    }
+
+    private fun renderThumbnail(defaultSource: PreviewImage, resolutions: List<Resolutions>, defaultImageViewWidth: Int) {
+        var selectedSource = defaultSource
+        Timber.d("max default image view width: $defaultImageViewWidth")
+        Timber.d("default : ${defaultSource.width}x${defaultSource.height}")
+        for(resolution in resolutions) {
+            if(resolution.width <= defaultImageViewWidth) {
+                selectedSource = PreviewImage(url = resolution.url, width = resolution.width, height = resolution.height)
+                Timber.d("updating source to : ${selectedSource.width}x${selectedSource.height}")
+            } else {
+                Timber.e("discarding resolution: ${resolution.width}x${resolution.height}")
+            }
+        }
         ConstraintSet().apply {
             clone(feedListItemBinding.clFeedItem)
             feedListItemBinding.ivFeedImage.id.let {
-                setDimensionRatio(it, "${source.width}:${source.height}")
+                setDimensionRatio(it, "${selectedSource.width}:${selectedSource.height}")
             }
             applyTo(feedListItemBinding.clFeedItem)
         }
         glideRequestManager
-            .load(source.url?.replace(FEED_THUMBNAIL_URL_REPLACEMENT_KEY, ""))
-            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+            .load(selectedSource.url?.replace(FEED_THUMBNAIL_URL_REPLACEMENT_KEY, ""))
             .thumbnail(0.1f)
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(feedListItemBinding.ivFeedImage)
     }
 
+
     private fun setLikeDislikeState() {
-        Timber.d("ups for: ${redditObject.title}: ${redditObject.ups}")
         feedListItemBinding.inclFeedActions.tvUps.text = redditObject.ups?.getPrettyCount()
         feedListItemBinding.inclFeedActions.tvComments.text = redditObject.num_comments?.getPrettyCount()
         when(redditObject.likes) {

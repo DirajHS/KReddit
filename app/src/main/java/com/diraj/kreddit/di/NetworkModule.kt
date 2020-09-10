@@ -108,6 +108,27 @@ class NetworkModule {
     }
 
     @Provides
+    @Named("GlideOkHttpClient")
+    @Singleton
+    fun providesGlideOkHttpClient(
+        httpLoggingInterceptor: HttpLoggingInterceptor,
+        connectionPool: ConnectionPool,
+        kReddit: KReddit,
+        cache: Cache
+    ): OkHttpClient {
+
+        val builder = OkHttpClient.Builder()
+        builder.cache(cache)
+        builder.connectionPool(connectionPool)
+        builder.readTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
+        builder.writeTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
+        builder.connectTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
+        builder.addInterceptor(httpLoggingInterceptor)
+        builder.addNetworkInterceptor(FlipperOkhttpInterceptor(kReddit.networkFlipperPlugin))
+        return builder.build()
+    }
+
+    @Provides
     @Singleton
     fun providesGsonInstance(): Gson {
         val gsonBuilder = GsonBuilder()

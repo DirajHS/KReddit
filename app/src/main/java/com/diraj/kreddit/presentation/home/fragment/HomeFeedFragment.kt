@@ -14,9 +14,9 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.LayoutHomeFeedFragmentBinding
+import com.diraj.kreddit.di.GlideApp
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
 import com.diraj.kreddit.network.RedditResponse
@@ -68,7 +68,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
         Timber.d("onCreateView")
         layoutHomeFeedFragmentBinding = LayoutHomeFeedFragmentBinding.inflate(inflater, container, false)
 
-        val glideRequestManager = Glide.with(this)
+        val glideRequestManager = GlideApp.with(this)
         val handlerThread = HandlerThread("epoxy")
         handlerThread.start()
         handler = Handler(handlerThread.looper)
@@ -118,11 +118,11 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
     private fun setRefreshListener() {
         layoutHomeFeedFragmentBinding.swipeRefreshLayout
-            ?.setColorSchemeColors(ContextCompat.getColor(requireContext(), R.color.like_true_color),
+            .setColorSchemeColors(ContextCompat.getColor(requireContext(), R.color.like_true_color),
                 ContextCompat.getColor(requireContext(), R.color.like_false_color),
                 ContextCompat.getColor(requireContext(), R.color.colorPrimary),
                 ContextCompat.getColor(requireContext(), R.color.colorAccent))
-        layoutHomeFeedFragmentBinding.swipeRefreshLayout?.setOnRefreshListener {
+        layoutHomeFeedFragmentBinding.swipeRefreshLayout.setOnRefreshListener {
             homeFeedViewModel.refresh()
         }
     }
@@ -157,7 +157,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
             layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it == RedditResponse.Loading)
             layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it is RedditResponse.Error)
-            layoutHomeFeedFragmentBinding.swipeRefreshLayout?.isRefreshing = (it == RedditResponse.Loading)
+            layoutHomeFeedFragmentBinding.swipeRefreshLayout.isRefreshing = (it == RedditResponse.Loading)
         })
     }
 
