@@ -105,13 +105,13 @@ class HomeActivity : AppCompatActivity(), HasAndroidInjector {
             val homeNavigationHeaderBinding = HomeNavigationHeaderBinding
                 .bind(layoutActivityHomeBinding.nvUserControls.getHeaderView(0))
             Glide.with(this)
-                .load(userData.icon_img)
+                .load(userData.iconImg)
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .thumbnail(0.1f)
                 .into(homeNavigationHeaderBinding.rvProfile)
             homeNavigationHeaderBinding.tvUserName.text = userData.name
             homeNavigationHeaderBinding.tvUserDuration.text = PrettyTime(Locale.getDefault())
-                .format(userData.created_utc.toFloat().toLong().times(1000L).let { Date(it) })
+                .format(userData.createdUtc.toFloat().toLong().times(1000L).let { Date(it) })
         }
     }
 

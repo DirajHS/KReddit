@@ -10,7 +10,7 @@ class FeedItemDetailsRepo @Inject constructor(private val redditRetrofit: Retrof
                                               private val kRedditDB: KRedditDB) {
 
     suspend fun getFeedItemDetails(permalink: String): List<BaseModel> {
-        return redditRetrofit.create(RedditAPIService::class.java).fetchCommentsPermalink(permalink)
+        return redditRetrofit.create(RedditAPIService::class.java).fetchCommentsFromPermalink(permalink)
     }
 
     fun getFeedByName(feedName: String) = kRedditDB.kredditPostsDAO().getUniqueFeedByName(feedName)

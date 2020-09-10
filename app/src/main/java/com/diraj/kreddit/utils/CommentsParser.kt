@@ -24,7 +24,7 @@ class CommentsParser(private var commentsResponse: List<BaseModel>) {
             author = redditContentData.author,
             score = redditContentData.score,
             id = redditContentData.id,
-            created_utc = redditContentData.created_utc,
+            createdUtc = redditContentData.createdUtc,
             name = redditContentData.name,
             children = commentList,
             ups = redditContentData.ups,

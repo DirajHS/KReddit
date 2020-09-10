@@ -42,8 +42,8 @@ class AuthenticationViewModel @Inject constructor(@Named("Authenticator") var re
                 val accessCodeResponse = redditAPIService.getAccessToken(USER_AGENT_VALUE,
                     "$ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX $encodedAuthString", postBody)
                 accessCodeResponse.let {
-                    val accessToken = accessCodeResponse.access_token
-                    val refreshToken = accessCodeResponse.refresh_token
+                    val accessToken = accessCodeResponse.accessToken
+                    val refreshToken = accessCodeResponse.refreshToken
 
                     if (refreshToken != null) {
                         UserSession.open(accessToken, refreshToken)

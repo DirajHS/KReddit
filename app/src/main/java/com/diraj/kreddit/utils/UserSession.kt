@@ -8,16 +8,13 @@ import timber.log.Timber
 
 object UserSession {
 
-    private const val access_token = ACCESS_TOKEN_KEY
-    private const val refresh_token = REFRESH_TOKEN_KEY
-
     private val encodedSharedPrefs = MMKV.defaultMMKV()
 
     var accessToken: String? = null
         @Synchronized
         get() {
             if (field == null) {
-                field = encodedSharedPrefs.decodeString(access_token)
+                field = encodedSharedPrefs.decodeString(ACCESS_TOKEN_KEY)
             }
             return field
         }
@@ -25,21 +22,21 @@ object UserSession {
         private set(value) {
             Timber.d("setting value: $value")
             field = value
-            encodedSharedPrefs.encode(access_token, value)
+            encodedSharedPrefs.encode(ACCESS_TOKEN_KEY, value)
         }
 
     var refreshToken: String? = null
         @Synchronized
         get() {
             if (field == null) {
-                field = encodedSharedPrefs.decodeString(refresh_token)
+                field = encodedSharedPrefs.decodeString(REFRESH_TOKEN_KEY)
             }
             return field
         }
         @Synchronized
         private set(value) {
             field = value
-            encodedSharedPrefs.encode(refresh_token, value)
+            encodedSharedPrefs.encode(REFRESH_TOKEN_KEY, value)
         }
 
 

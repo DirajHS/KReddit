@@ -24,11 +24,11 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         if (jsonObject.has(TITLE)) {
             redditContentData.title = (jsonObject[TITLE].asString)
         }
-        if (jsonObject.has(SUBREDDITNAMEPREFIXED)) {
-            redditContentData.subreddit_name_prefixed = (jsonObject[SUBREDDITNAMEPREFIXED].asString)
+        if (jsonObject.has(SUB_REDDIT_NAME_PREFIXED)) {
+            redditContentData.subredditNamePrefixed = (jsonObject[SUB_REDDIT_NAME_PREFIXED].asString)
         }
         if (jsonObject.has(CREATED_AT)) {
-            redditContentData.created_utc = (jsonObject[CREATED_AT].asLong)
+            redditContentData.createdUtc = (jsonObject[CREATED_AT].asLong)
         }
         if (jsonObject.has(THUMBNAIL)) {
             redditContentData.thumbnail = (jsonObject[THUMBNAIL].asString)
@@ -37,7 +37,7 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
             redditContentData.author = (jsonObject[AUTHOR].asString)
         }
         if (jsonObject.has(SUBREDDIT)) {
-            redditContentData.subreddit = (jsonObject[SUBREDDIT].asString)
+            redditContentData.subReddit = (jsonObject[SUBREDDIT].asString)
         }
         if (jsonObject.has(UPS)) {
             redditContentData.ups = (jsonObject[UPS].asInt)
@@ -45,8 +45,8 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         if (jsonObject.has(SCORES)) {
             redditContentData.score = (jsonObject[SCORES].asInt)
         }
-        if (jsonObject.has(NUMCOMMENTS)) {
-            redditContentData.num_comments = (jsonObject[NUMCOMMENTS].asInt)
+        if (jsonObject.has(NUM_COMMENTS)) {
+            redditContentData.numComments = (jsonObject[NUM_COMMENTS].asInt)
         }
         if (jsonObject.has(BODY_HTML)) {
             redditContentData.body = (jsonObject[BODY_HTML].asString)
@@ -62,7 +62,7 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
             redditContentData.url = (jsonObject[URL].asString)
         }
         if(jsonObject.has(URL_DESTINATION)) {
-            redditContentData.url_overridden_by_dest = (jsonObject[URL].asString)
+            redditContentData.urlOverriddenByDest = (jsonObject[URL].asString)
         }
         if (jsonObject.has(REPLIES)) {
             val redditResponseJsonElement = jsonObject[REPLIES]
@@ -73,8 +73,8 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         if(jsonObject.has(LIKES) && !jsonObject[LIKES].isJsonNull) {
             redditContentData.likes = (jsonObject[LIKES].asBoolean)
         }
-        if(jsonObject.has(SELFTEXT_HTML) && !jsonObject[SELFTEXT_HTML].isJsonNull) {
-            redditContentData.selftext_html = (jsonObject[SELFTEXT_HTML].asString)
+        if(jsonObject.has(SELF_TEXT_HTML) && !jsonObject[SELF_TEXT_HTML].isJsonNull) {
+            redditContentData.selfTextHtml = (jsonObject[SELF_TEXT_HTML].asString)
         }
         return redditContentData
     }
@@ -87,10 +87,10 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         const val OVER18 = "over_18"
         const val AUTHOR = "author"
         const val THUMBNAIL = "thumbnail"
-        const val NUMCOMMENTS = "num_comments"
+        const val NUM_COMMENTS = "num_comments"
         const val PREVIEW = "preview"
         const val PERMALINK = "permalink"
-        const val SUBREDDITNAMEPREFIXED = "subreddit_name_prefixed"
+        const val SUB_REDDIT_NAME_PREFIXED = "subreddit_name_prefixed"
         const val CREATED_AT = "created_utc"
         const val SUBREDDIT = "subreddit"
         const val UPS = "ups"
@@ -99,7 +99,7 @@ class RedditObjectDataParser : JsonDeserializer<RedditObjectData?> {
         const val URL_DESTINATION = "url_overridden_by_dest"
         const val LIKES = "likes"
         const val NAME = "name"
-        const val SELFTEXT_HTML = "selftext_html"
+        const val SELF_TEXT_HTML = "selftext_html"
     }
 
 }

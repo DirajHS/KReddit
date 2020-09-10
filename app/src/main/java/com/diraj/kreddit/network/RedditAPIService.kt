@@ -15,7 +15,7 @@ interface RedditAPIService {
     suspend fun getHomeFeed(@Query("after") after: String?, @Query("limit") limit: Int): BaseModel
 
     @GET("{permalink}.json")
-    suspend fun fetchCommentsPermalink(@Path("permalink", encoded = true) permalink: String) : List<BaseModel>
+    suspend fun fetchCommentsFromPermalink(@Path("permalink", encoded = true) permalink: String) : List<BaseModel>
 
     @POST(value = "api/v1/access_token")
     suspend fun getAccessToken(@Header(USER_AGENT_KEY) userAgent: String,

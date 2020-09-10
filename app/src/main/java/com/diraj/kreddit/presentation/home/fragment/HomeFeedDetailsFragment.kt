@@ -107,7 +107,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Timber.d("onActivityCreated")
-        redditObjectData?.subreddit_name_prefixed?.let { title ->
+        redditObjectData?.subredditNamePrefixed?.let { title ->
             (requireActivity() as AppCompatActivity).supportActionBar?.title = title
         }
         if(redditObjectData == null) {
@@ -167,15 +167,15 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             setLikeDislikeState()
             renderFeedDetailsImage()
             handleLikeDislikeClick()
-            redditObjectData?.subreddit_name_prefixed?.let { subReddit -> redditObjectData?.author?.let { author ->
+            redditObjectData?.subredditNamePrefixed?.let { subReddit -> redditObjectData?.author?.let { author ->
                 setSubredditWithAuthorSpanned(subReddit, String.format(requireContext().getString(R.string.reddit_author_prefixed), author))
             } }
             layoutFeedItemDetailsFragmentBinding.tvDetailTitle.text = redditObjectData?.title
             layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObjectData?.getDomain()
             layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObjectData?.ups?.getPrettyCount()
-            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectData?.num_comments?.getPrettyCount()
+            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectData?.numComments?.getPrettyCount()
             layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-                .format(redditObjectData?.created_utc?.times(1000L)?.let { Date(it) })
+                .format(redditObjectData?.createdUtc?.times(1000L)?.let { Date(it) })
 
             handleDomainClick()
         })
@@ -202,7 +202,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun handleDomainClick() {
-        redditObject?.data?.url_overridden_by_dest?.let { destinationURL ->
+        redditObject?.data?.urlOverriddenByDest?.let { destinationURL ->
             layoutFeedItemDetailsFragmentBinding.llDomain.setOnClickListener {
                 val intent = Intent(ACTION_VIEW)
                 intent.data = Uri.parse(destinationURL)

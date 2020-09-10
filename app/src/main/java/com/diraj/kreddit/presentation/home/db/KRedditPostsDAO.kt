@@ -16,7 +16,7 @@ interface KRedditPostsDAO {
     fun posts(): DataSource.Factory<Int, RedditObjectData>
 
     @Query("SELECT MAX(indexInResponse) + 1 FROM RedditObjectData")
-    fun getNextIndexInSubreddit() : Int
+    fun getNextIndexInReddit() : Int
 
     @Query("SELECT * FROM RedditObjectData WHERE name == :feedName")
     fun getFeedByName(feedName: String): Flow<RedditObjectData>

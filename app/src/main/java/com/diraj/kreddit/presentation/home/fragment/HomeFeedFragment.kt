@@ -33,6 +33,7 @@ import com.diraj.kreddit.utils.getViewModel
 import com.diraj.kreddit.utils.sharedViewModel
 import com.google.android.material.transition.Hold
 import com.google.android.material.transition.MaterialElevationScale
+import retrofit2.HttpException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -150,13 +151,16 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
                     }
                     is RedditResponse.Error -> {
                         feedPagedEpoxyController.isLoading = false
-                        feedPagedEpoxyController.error = it.ex.message
+                        feedPagedEpoxyController.error = getErrorText(redditResponse = it)
                     }
                 }
             }
 
             layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it == RedditResponse.Loading)
             layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it is RedditResponse.Error)
+            if(layoutHomeFeedFragmentBinding.errorView.root.isVisible) {
+                feedPagedEpoxyController.error = getErrorText(it as RedditResponse.Error)
+            }
             layoutHomeFeedFragmentBinding.swipeRefreshLayout.isRefreshing = (it == RedditResponse.Loading)
         })
     }
@@ -164,6 +168,17 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     private fun handleRetryClick() {
         layoutHomeFeedFragmentBinding.errorView.root.setOnClickListener {
             homeFeedViewModel.retry()
+        }
+    }
+
+    private fun getErrorText(redditResponse: RedditResponse.Error): String? {
+        return when (redditResponse.ex) {
+            is HttpException -> {
+                "${redditResponse.ex.code()}: ${redditResponse.ex.message}"
+            }
+            else -> {
+                getString(R.string.generic_error_string)
+            }
         }
     }
 

@@ -36,13 +36,13 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
                 try {
                     val feedData = redditAPIService.getHomeFeed(after = null, limit = 25)
                     insertFeed(feedData)
-                    helperCallback.recordSuccess()
+                    helperCallback?.recordSuccess()
                     feedApiStateLiveData.postValue(RedditResponse.Success(null))
                 } catch (ex: HttpException) {
-                    helperCallback.recordFailure(ex)
+                    helperCallback?.recordFailure(ex)
                     feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 } catch (ex: UnknownHostException) {
-                    helperCallback.recordFailure(ex)
+                    helperCallback?.recordFailure(ex)
                     feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 }
             }
@@ -57,13 +57,13 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
                 try {
                     val feedData = redditAPIService.getHomeFeed(after = itemAtEnd.name, limit = 25)
                     insertFeed(feedData)
-                    helperCallback.recordSuccess()
+                    helperCallback?.recordSuccess()
                     feedApiStateLiveData.postValue(RedditResponse.Success(null))
                 } catch (ex: HttpException) {
-                    helperCallback.recordFailure(ex)
+                    helperCallback?.recordFailure(ex)
                     feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 } catch (ex: UnknownHostException) {
-                    helperCallback.recordFailure(ex)
+                    helperCallback?.recordFailure(ex)
                     feedApiStateLiveData.postValue(RedditResponse.Error(ex))
                 }
             }
@@ -72,7 +72,7 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
 
     private fun insertFeed(baseModel: BaseModel) {
         val redditFeedList = mutableListOf<RedditObjectData>()
-        val start = kRedditDB.kredditPostsDAO().getNextIndexInSubreddit()
+        val start = kRedditDB.kredditPostsDAO().getNextIndexInReddit()
         baseModel.data.children.mapIndexed { index, redditObject ->
             val redditObjectData = redditObject.data
             redditObjectData.indexInResponse = start + index

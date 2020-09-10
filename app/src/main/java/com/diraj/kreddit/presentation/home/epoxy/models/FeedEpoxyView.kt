@@ -53,11 +53,11 @@ class FeedEpoxyView @JvmOverloads constructor(
     @AfterPropsSet
     fun renderFeedItem() {
         feedListItemBinding.tvTitle.text = redditObject.title?.fromHtml()
-        redditObject.subreddit_name_prefixed?.let { subReddit -> redditObject.author?.let { author ->
+        redditObject.subredditNamePrefixed?.let { subReddit -> redditObject.author?.let { author ->
             setSubredditWithAuthorSpanned(subReddit, String.format(context.getString(R.string.reddit_author_prefixed), author))
         } }
         feedListItemBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-            .format(redditObject.created_utc?.times(1000L)?.let { Date(it) })
+            .format(redditObject.createdUtc?.times(1000L)?.let { Date(it) })
 
         redditObject.preview?.images?.first()?.source?.let { source ->
             redditObject.preview?.images?.first()?.resolutions
@@ -66,6 +66,7 @@ class FeedEpoxyView @JvmOverloads constructor(
             feedListItemBinding.ivFeedImage.visibility = View.GONE
         }
 
+        //For shared element transition
         ViewCompat.setTransitionName(feedListItemBinding.cvFeedItem, redditObject.thumbnail)
         feedListItemBinding.root.setOnClickListener {
             feedItemClickListener?.onFeedItemClicked(it, redditObject)
@@ -136,7 +137,7 @@ class FeedEpoxyView @JvmOverloads constructor(
 
     private fun setLikeDislikeState() {
         feedListItemBinding.inclFeedActions.tvUps.text = redditObject.ups?.getPrettyCount()
-        feedListItemBinding.inclFeedActions.tvComments.text = redditObject.num_comments?.getPrettyCount()
+        feedListItemBinding.inclFeedActions.tvComments.text = redditObject.numComments?.getPrettyCount()
         when(redditObject.likes) {
             true -> {
                 feedListItemBinding.inclFeedActions.ivThumbUp.isSelected = true

@@ -131,11 +131,11 @@ class NetworkLayerTest {
 
         val invalidTokenResponse = MockResponse().setResponseCode(401)
         val authResponse = AccessTokenModel(
-            access_token = "NewAccessToken",
-            expires_in = 3600,
+            accessToken = "NewAccessToken",
+            expiresIn = 3600,
             scope = "identity vote",
-            token_type = "bearer",
-            refresh_token = null
+            tokenType = "bearer",
+            refreshToken = null
         )
 
         val responseBody = Gson().toJson(authResponse)
@@ -168,8 +168,8 @@ class NetworkLayerTest {
         mockWebServer.takeRequest()
         val retryRequest = mockWebServer.takeRequest()
         val header = retryRequest.getHeader(AUTHORIZATION)
-        assertThat(UserSession.accessToken, `is`(authResponse.access_token))
-        assertThat(header, `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${authResponse.access_token}"))
+        assertThat(UserSession.accessToken, `is`(authResponse.accessToken))
+        assertThat(header, `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${authResponse.accessToken}"))
         assert(response.data.children.size == 25)
     }
 }

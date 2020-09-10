@@ -72,7 +72,7 @@ class AccessTokenAuthenticator @Inject constructor(
             return runBlocking {
                 val accessCodeResponse = redditAPIService.getAccessToken(USER_AGENT_VALUE,
                     "$ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX $encodedAuthString", postBody)
-                val accessToken = accessCodeResponse.access_token
+                val accessToken = accessCodeResponse.accessToken
                 UserSession.open(accessToken, refreshToken!!)
                 return@runBlocking accessToken
             }

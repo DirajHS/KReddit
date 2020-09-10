@@ -11,31 +11,38 @@ import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectConvert
 import com.diraj.kreddit.presentation.home.db.typeconverters.RedditObjectPreviewConverter
 import com.diraj.kreddit.presentation.home.db.typeconverters.ResolutionConverters
 import com.diraj.kreddit.utils.KRedditConstants
+import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 @Entity
-@TypeConverters(value = [RedditObjectPreviewConverter::class, BaseModelConverter::class, RedditObjectConverter::class,
+@TypeConverters(value = [RedditObjectPreviewConverter::class, BaseModelConverter::class,
+    RedditObjectConverter::class,
     ResolutionConverters::class])
 data class RedditObjectData (
     var author: String? = null,
     var score: Int?= null,
-    var created_utc: Long?= null,
+    @SerializedName("created_utc")
+    var createdUtc: Long?= null,
     var permalink: String?= null,
-    var subreddit: String?= null,
-    var subreddit_name_prefixed: String?= null,
+    var subReddit: String?= null,
+    @SerializedName("subreddit_name_prefixed")
+    var subredditNamePrefixed: String?= null,
     var title: String?= null,
     var url: String?= null,
-    var url_overridden_by_dest: String? = null,
+    @SerializedName("url_overridden_by_dest")
+    var urlOverriddenByDest: String? = null,
     var preview: RedditObjectPreview?= null,
     var thumbnail: String?= null,
-    var num_comments: Int?= null,
+    @SerializedName("num_comments")
+    var numComments: Int?= null,
     var body: String?= null,
     var ups: Int?= null,
     var likes: Boolean? = null,
     var replies: BaseModel ?= null,
     var id: String?= null,
-    var selftext_html: String? = null,
+    @SerializedName("selftext_html")
+    var selfTextHtml: String? = null,
     var indexInResponse: Int = -1,
     @PrimaryKey var name: String
 ) : Parcelable {
