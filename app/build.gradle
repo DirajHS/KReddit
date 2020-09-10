@@ -29,7 +29,7 @@ android {
         debug {
             buildConfigField "String", REDDIT_BASE_URL, "\"https://www.reddit.com/\""
             buildConfigField "String", REDDIT_BASE_URL_OAUTH, "\"https://oauth.reddit.com/\""
-            buildConfigField "String", REDDIT_CLIENT_ID, "\"lm2X-f4rPpBshw\""
+            buildConfigField "String", REDDIT_CLIENT_ID, REDDIT_CLIENT_ID
             buildConfigField "String", REDDIT_REDIRECT_URI, "\"kreddit://authenticate\""
             buildConfigField "String", REDDIT_LOGIN_SCOPES, "\"identity mysubreddits read vote\""
         }
@@ -38,7 +38,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", REDDIT_BASE_URL, "\"https://www.reddit.com/\""
             buildConfigField "String", REDDIT_BASE_URL_OAUTH, "\"https://oauth.reddit.com/\""
-            buildConfigField "String", REDDIT_CLIENT_ID, "\"lm2X-f4rPpBshw\""
+            buildConfigField "String", REDDIT_CLIENT_ID, REDDIT_CLIENT_ID
             buildConfigField "String", REDDIT_REDIRECT_URI, "\"kreddit://authenticate\""
             buildConfigField "String", REDDIT_LOGIN_SCOPES, "\"identity mysubreddits read vote\""
         }
