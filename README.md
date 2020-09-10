@@ -6,8 +6,8 @@ An Android Reddit client written in Kotlin with MVVM architecture.
 
 ## Developers
 
-To set up the project, create a new Reddit app from your account and follow the below steps:
- * set the application redirect URI to: `kreddit://authenticate` (for login), you are free to change the redirect URI, but make sure to update the same in `AndroidManifest.xml` and `app/build.gradle` files with corresponding keys accordingly otherwise login will not work.
+To set up the project, create a new Reddit app from your [account](https://old.reddit.com/prefs/apps/) and follow the below steps:
+ * set the application redirect URI to: `kreddit://authenticate` (for login), you are also free to change the redirect URI, but make sure to update the same in `AndroidManifest.xml` and `app/build.gradle` files with corresponding keys accordingly otherwise login will not work.
  * include your Reddit client id in the `gradle.properties` file
 
 
