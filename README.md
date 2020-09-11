@@ -2,7 +2,7 @@
 
 An Android Reddit client written in Kotlin with MVVM architecture.
 
-![](final-architecture.png)
+![](readmeContent/final-architecture.png)
 
 ## Developers
 
@@ -24,11 +24,12 @@ To set up the project, create a new Reddit app from your [account](https://old.r
 
  * **Architecture components** : Navigation component, Room DB, LiveData & ViewModel, Paging library with boundary callback
  * **Coroutines** for offloading heavy tasks
+ * **MotionLayout** for details page transitions when swiped up
  * **Dagger2** for dependency injection
  * **Retrofit2** & **OkHttp** for core networking
  * **Epoxy** for displaying an optimised list of feeds with smooth scroll. Currently Paging2 library is used as it is in a stable release, once Paging3 comes to release, it can be included.
 
-![](Paging_architecture.png)
+![](readmeContent/Paging_architecture.png)
  * **Groupie** for displaying comments section in feed details page
  * **MMKV** for having an efficient memory mapped preferences
  * **Glide** to display the images

@@ -84,7 +84,8 @@ class HomeActivity : AppCompatActivity(), HasAndroidInjector {
     }
 
     private fun fetchProfileData() {
-        homeActivityViewModel.fetchProfileInfo().observe(this, { redditResponse ->
+        homeActivityViewModel.fetchProfileInfo()
+        homeActivityViewModel.userInfoLiveData.observe(this, { redditResponse ->
             when(redditResponse) {
                 is RedditResponse.Loading -> {
                     Timber.d("loading profile")

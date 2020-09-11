@@ -1,15 +1,13 @@
 package com.diraj.kreddit.presentation.home.viewmodel
 
-import android.util.Base64
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
-import com.diraj.kreddit.BuildConfig
+import androidx.lifecycle.*
 import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.RedditAPIService
 import com.diraj.kreddit.network.RedditResponse
 import com.diraj.kreddit.utils.KRedditConstants.MEDIA_TYPE
 import com.diraj.kreddit.utils.UserSession
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
@@ -23,27 +21,30 @@ class HomeActivityViewModel @Inject constructor(private val redditRetrofit: Retr
                                                 @Named("Authenticator")private val authenticatorRetrofit: Retrofit)
     : ViewModel() {
 
-    fun fetchProfileInfo() = liveData(context = Dispatchers.IO) {
-        emit(RedditResponse.Loading)
-        try {
-            val profileInfo =
-                redditRetrofit.create(RedditAPIService::class.java).getCurrentUserInfo()
-            emit(RedditResponse.Success(profileInfo))
-        } catch (ex: HttpException) {
-            emit(RedditResponse.Error(ex))
-            return@liveData
-        } catch (ex: UnknownHostException) {
-            emit(RedditResponse.Error(ex))
-            return@liveData
+    private val _userInfoLiveData = MutableLiveData<RedditResponse>()
+    val userInfoLiveData: LiveData<RedditResponse>
+        get() = _userInfoLiveData
+
+    fun fetchProfileInfo() {
+        viewModelScope.launch(context = Dispatchers.IO) {
+            _userInfoLiveData.postValue(RedditResponse.Loading)
+            try {
+                val profileInfo =
+                    redditRetrofit.create(RedditAPIService::class.java).getCurrentUserInfo()
+                _userInfoLiveData.postValue(RedditResponse.Success(profileInfo))
+            } catch (ex: HttpException) {
+                _userInfoLiveData.postValue(RedditResponse.Error(ex))
+                return@launch
+            } catch (ex: UnknownHostException) {
+                _userInfoLiveData.postValue(RedditResponse.Error(ex))
+                return@launch
+            }
         }
     }
 
     fun doLogout() = liveData(context = Dispatchers.IO) {
         emit(RedditResponse.Loading)
         try {
-            val authString = BuildConfig.REDDIT_CLIENT_ID + ":"
-            val encodedAuthString = Base64.encodeToString(authString.toByteArray(),
-                Base64.NO_WRAP)
 
             val postInfo = "token=${UserSession.refreshToken}&token_type_hint=refresh_token"
             val postBody = postInfo.toRequestBody(MEDIA_TYPE.toMediaTypeOrNull())
