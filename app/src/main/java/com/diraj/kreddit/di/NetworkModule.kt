@@ -3,6 +3,7 @@ package com.diraj.kreddit.di
 import com.diraj.kreddit.BuildConfig
 import com.diraj.kreddit.KReddit
 import com.diraj.kreddit.network.AccessTokenAuthenticator
+import com.diraj.kreddit.network.interceptors.AuthenticatorInterceptor
 import com.diraj.kreddit.network.interceptors.KRedditHeaderInterceptor
 import com.diraj.kreddit.network.interceptors.ServerResponseErrorInterceptor
 import com.diraj.kreddit.network.models.RedditObjectData
@@ -90,6 +91,7 @@ class NetworkModule {
     fun providesOkHttpClientForAuthenticator(
         httpLoggingInterceptor: HttpLoggingInterceptor,
         serverResponseErrorInterceptor: ServerResponseErrorInterceptor,
+        authenticatorInterceptor: AuthenticatorInterceptor,
         connectionPool: ConnectionPool,
         kReddit: KReddit,
         cache: Cache
@@ -103,6 +105,7 @@ class NetworkModule {
         builder.connectTimeout(REQUEST_TIME_OUT.toLong(), TimeUnit.SECONDS)
         builder.addInterceptor(httpLoggingInterceptor)
         builder.addInterceptor(serverResponseErrorInterceptor)
+        builder.addInterceptor(authenticatorInterceptor)
         builder.addNetworkInterceptor(FlipperOkhttpInterceptor(kReddit.networkFlipperPlugin))
         return builder.build()
     }

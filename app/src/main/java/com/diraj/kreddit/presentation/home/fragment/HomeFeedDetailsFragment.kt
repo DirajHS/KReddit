@@ -163,21 +163,28 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     private fun renderFeedDetails() {
         feedItemDetailsViewModel.feedDetailsByNameLiveData.observe(viewLifecycleOwner, { redditObject ->
-            redditObjectData = redditObject
-            setLikeDislikeState()
-            renderFeedDetailsImage()
-            handleLikeDislikeClick()
-            redditObjectData?.subredditNamePrefixed?.let { subReddit -> redditObjectData?.author?.let { author ->
-                setSubredditWithAuthorSpanned(subReddit, String.format(requireContext().getString(R.string.reddit_author_prefixed), author))
-            } }
-            layoutFeedItemDetailsFragmentBinding.tvDetailTitle.text = redditObjectData?.title
-            layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObjectData?.getDomain()
-            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObjectData?.ups?.getPrettyCount()
-            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectData?.numComments?.getPrettyCount()
-            layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-                .format(redditObjectData?.createdUtc?.times(1000L)?.let { Date(it) })
+            /*
+            When we vote on a feed item and refresh, Reddit removes it from the feed (due its default settings), this would
+            disturb the UI in tablets if it is already shown. This behaviour needs to be adjusted in user settings from Reddit page,
+            however, from client side, we can make sure that we are updating details page with non-null data only.
+             */
+            redditObject?.let {
+                redditObjectData = it
+                setLikeDislikeState()
+                renderFeedDetailsImage()
+                handleLikeDislikeClick()
+                redditObjectData?.subredditNamePrefixed?.let { subReddit -> redditObjectData?.author?.let { author ->
+                    setSubredditWithAuthorSpanned(subReddit, String.format(requireContext().getString(R.string.reddit_author_prefixed), author))
+                } }
+                layoutFeedItemDetailsFragmentBinding.tvDetailTitle.text = redditObjectData?.title
+                layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObjectData?.getDomain()
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObjectData?.ups?.getPrettyCount()
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectData?.numComments?.getPrettyCount()
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
+                    .format(redditObjectData?.createdUtc?.times(1000L)?.let { createdUtc -> Date(createdUtc) })
 
-            handleDomainClick()
+                handleDomainClick()
+            }
         })
     }
 

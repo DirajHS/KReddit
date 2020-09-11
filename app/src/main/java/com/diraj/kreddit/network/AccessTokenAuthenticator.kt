@@ -2,11 +2,9 @@ package com.diraj.kreddit.network
 
 import android.util.Base64
 import com.diraj.kreddit.BuildConfig
-import com.diraj.kreddit.utils.KRedditConstants.ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX
 import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION
 import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION_HEADER_PREFIX_BEARER
 import com.diraj.kreddit.utils.KRedditConstants.MEDIA_TYPE
-import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_VALUE
 import com.diraj.kreddit.utils.UserSession
 import com.diraj.kreddit.utils.UserSession.accessToken
 import com.diraj.kreddit.utils.UserSession.refreshToken
@@ -70,8 +68,7 @@ class AccessTokenAuthenticator @Inject constructor(
         val redditAPIService = authenticatorRetrofit.create(RedditAPIService::class.java)
         try {
             return runBlocking {
-                val accessCodeResponse = redditAPIService.getAccessToken(USER_AGENT_VALUE,
-                    "$ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX $encodedAuthString", postBody)
+                val accessCodeResponse = redditAPIService.getAccessToken(postBody)
                 val accessToken = accessCodeResponse.accessToken
                 UserSession.open(accessToken, refreshToken!!)
                 return@runBlocking accessToken

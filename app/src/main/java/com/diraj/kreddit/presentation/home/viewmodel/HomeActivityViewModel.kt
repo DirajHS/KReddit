@@ -7,7 +7,6 @@ import com.diraj.kreddit.BuildConfig
 import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.RedditAPIService
 import com.diraj.kreddit.network.RedditResponse
-import com.diraj.kreddit.utils.KRedditConstants.ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX
 import com.diraj.kreddit.utils.KRedditConstants.MEDIA_TYPE
 import com.diraj.kreddit.utils.UserSession
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +49,7 @@ class HomeActivityViewModel @Inject constructor(private val redditRetrofit: Retr
             val postBody = postInfo.toRequestBody(MEDIA_TYPE.toMediaTypeOrNull())
 
             authenticatorRetrofit.create(RedditAPIService::class.java)
-                .logout("$ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX $encodedAuthString", postBody)
+                .logout(postBody)
             UserSession.close()
             redditDB.kredditPostsDAO().deleteAllPosts()
             emit(RedditResponse.Success(null))
