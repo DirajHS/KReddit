@@ -27,6 +27,7 @@ To set up the project, create a new Reddit app from your [account](https://old.r
  * **MotionLayout** for details page transitions when swiped up
  * **Dagger2** for dependency injection
  * **Retrofit2** & **OkHttp** for core networking
+ * **Material Components** for UI widgets
  * **Epoxy** for displaying an optimised list of feeds with smooth scroll. Currently Paging2 library is used as it is in a stable release, once Paging3 comes to release, it can be included.
 
 ![](readmeContent/Paging_architecture.png)
