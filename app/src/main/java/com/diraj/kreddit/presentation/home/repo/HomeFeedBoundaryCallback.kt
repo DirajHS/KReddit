@@ -75,8 +75,8 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
         val redditFeedList = mutableListOf<RedditObjectData.RedditObjectDataWithoutReplies>()
         val start = kRedditDB.kredditPostsDAO().getNextIndexInReddit()
         baseModel.data.children.mapIndexed { index, redditObject ->
-            val redditObjectData = redditObject.data as RedditObjectData.RedditObjectDataWithoutReplies
-            redditObjectData.indexInResponse = start + index
+            val redditObjectData = (redditObject.data
+                    as RedditObjectData.RedditObjectDataWithoutReplies).copy(indexInResponse = start + index)
             redditObjectData
         }.forEach {
                 redditFeedList.add(it)

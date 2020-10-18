@@ -1,8 +1,6 @@
 package com.diraj.kreddit.utils
 
 import android.os.Build
-import android.os.Parcel
-import android.os.Parcelable
 import android.text.Html
 import android.text.Spanned
 import androidx.fragment.app.Fragment
@@ -41,18 +39,6 @@ inline fun <reified T : ViewModel> Fragment.getViewModel(viewModelFactory: ViewM
 
 inline fun <reified T : ViewModel> Fragment.sharedViewModel(viewModelFactory: ViewModelProvider.Factory): T =
     ViewModelProvider(requireActivity(), viewModelFactory)[T::class.java]
-
-fun <T : Parcelable>T.deepCopy(): T {
-    var parcel: Parcel? = null
-    return try {
-        parcel = Parcel.obtain()
-        parcel.writeParcelable(this, 0)
-        parcel.setDataPosition(0)
-        parcel.readParcelable(this::class.java.classLoader)!!
-    } finally {
-        parcel?.recycle()
-    }
-}
 
 @Suppress("DEPRECATION")
 fun String.fromHtml(): Spanned? {

@@ -28,7 +28,6 @@ import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.androidLazy
-import com.diraj.kreddit.utils.deepCopy
 import com.diraj.kreddit.utils.getViewModel
 import com.diraj.kreddit.utils.sharedViewModel
 import com.google.android.material.transition.Hold
@@ -99,10 +98,10 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     override fun onFeedItemClicked(view: View, redditObject: RedditObjectData.RedditObjectDataWithoutReplies) {
         when(view.id) {
             R.id.iv_thumb_up -> {
-                sharedViewModel.vote(CLICKED_LIKE, redditObject.deepCopy())
+                sharedViewModel.vote(CLICKED_LIKE, redditObject)
             }
             R.id.iv_thumb_down -> {
-                sharedViewModel.vote(CLICKED_DISLIKE, redditObject.deepCopy())
+                sharedViewModel.vote(CLICKED_DISLIKE, redditObject)
             }
             else -> {
                 exitTransition = Hold().apply {

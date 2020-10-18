@@ -40,9 +40,12 @@ class SharedViewModel @Inject constructor(private val redditRetrofit: Retrofit,
 
     fun vote(clickedBtnType: String, redditObjectDataWithoutReplies: RedditObjectData.RedditObjectDataWithoutReplies) {
         viewModelScope.launch(context = Dispatchers.IO) {
-            when(doVote(redditObjectDataWithoutReplies.getVoteModelToPost(clickedBtnType))) {
+            val voteModel = redditObjectDataWithoutReplies.getVoteModelToPost(clickedBtnType)
+            when(doVote(voteModel)) {
                 is RedditResponse.Success<*> -> {
-                    kRedditDB.kredditPostsDAO().updateRedditFeed(redditObjectDataWithoutReplies)
+                    val updatedRedditObjectData = redditObjectDataWithoutReplies.copy(ups = voteModel?.ups,
+                        likes = voteModel?.likes)
+                    kRedditDB.kredditPostsDAO().updateRedditFeed(updatedRedditObjectData)
                 }
             }
         }

@@ -30,12 +30,15 @@ import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.groupie.ExpandableCommentGroup
 import com.diraj.kreddit.presentation.home.viewmodel.FeedItemDetailsViewModel
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
-import com.diraj.kreddit.utils.*
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.KRedditConstants.FEED_DETAILS_MOTION_PROGRESS_KEY
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.REDDIT_OBJECT_PARCELABLE_KEY
+import com.diraj.kreddit.utils.androidLazy
+import com.diraj.kreddit.utils.getPrettyCount
+import com.diraj.kreddit.utils.getViewModel
+import com.diraj.kreddit.utils.sharedViewModel
 import com.google.android.material.transition.MaterialContainerTransform
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -221,12 +224,12 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     private fun handleLikeDislikeClick() {
         layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.setOnClickListener {
-            redditObjectDataWithoutReplies?.deepCopy()?.let { it1 ->
+            redditObjectDataWithoutReplies?.let { it1 ->
                 sharedViewModel.vote(CLICKED_LIKE, it1)
             }
         }
         layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.setOnClickListener {
-            redditObjectDataWithoutReplies?.deepCopy()?.let { it1 ->
+            redditObjectDataWithoutReplies?.let { it1 ->
                 sharedViewModel.vote(CLICKED_DISLIKE, it1)
             }
         }
