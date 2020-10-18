@@ -30,10 +30,11 @@ class HomeFeedRepo @Inject constructor(private val kRedditDB: KRedditDB,
     }
 
     private fun insertFeed(baseModel: BaseModel) {
-        val redditFeedList = mutableListOf<RedditObjectData>()
+        val redditFeedList = mutableListOf<RedditObjectData.RedditObjectDataWithoutReplies>()
         val start = kRedditDB.kredditPostsDAO().getNextIndexInReddit()
         baseModel.data.children.mapIndexed { index, redditObject ->
             val redditObjectData = redditObject.data
+                    as RedditObjectData.RedditObjectDataWithoutReplies
             redditObjectData.indexInResponse = start + index
             redditObjectData
         }.forEach {

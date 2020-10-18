@@ -1,9 +1,10 @@
 package com.diraj.kreddit.presentation.home.db.typeconverters
 
 import androidx.room.TypeConverter
+import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.models.BaseModel
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.decodeFromString
+import timber.log.Timber
 
 class BaseModelConverter {
 
@@ -11,16 +12,14 @@ class BaseModelConverter {
     fun fromBaseModel(baseModel: BaseModel?) : String {
         if(baseModel == null)
             return ""
-        return Gson().toJson(baseModel)
+        return KRedditDB.jsonConverter.encodeToString(BaseModel.serializer(), baseModel)
     }
 
     @TypeConverter
     fun toBaseModel(jsonBaseModel: String?) : BaseModel? {
-        if(jsonBaseModel == null)
+        if(jsonBaseModel == null || jsonBaseModel.isEmpty())
             return null
-        val listType = object : TypeToken<BaseModel>() {
-
-        }.type
-        return Gson().fromJson(jsonBaseModel, listType)
+        Timber.d("json: $jsonBaseModel")
+        return KRedditDB.jsonConverter.decodeFromString<BaseModel>(jsonBaseModel)
     }
 }

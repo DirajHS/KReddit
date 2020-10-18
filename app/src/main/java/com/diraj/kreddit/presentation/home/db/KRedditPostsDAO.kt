@@ -10,22 +10,22 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 interface KRedditPostsDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(posts: List<RedditObjectData>)
+    fun insert(posts: List<RedditObjectData.RedditObjectDataWithoutReplies>)
 
-    @Query("SELECT * FROM RedditObjectData ORDER BY indexInResponse ASC")
-    fun posts(): DataSource.Factory<Int, RedditObjectData>
+    @Query("SELECT * FROM RedditObjectDataWithoutReplies ORDER BY indexInResponse ASC")
+    fun posts(): DataSource.Factory<Int, RedditObjectData.RedditObjectDataWithoutReplies>
 
-    @Query("SELECT MAX(indexInResponse) + 1 FROM RedditObjectData")
+    @Query("SELECT MAX(indexInResponse) + 1 FROM RedditObjectDataWithoutReplies")
     fun getNextIndexInReddit() : Int
 
-    @Query("SELECT * FROM RedditObjectData WHERE name == :feedName")
-    fun getFeedByName(feedName: String): Flow<RedditObjectData>
+    @Query("SELECT * FROM RedditObjectDataWithoutReplies WHERE name == :feedName")
+    fun getFeedByName(feedName: String): Flow<RedditObjectData.RedditObjectDataWithoutReplies>
 
     fun getUniqueFeedByName(feedName: String) = getFeedByName(feedName).distinctUntilChanged()
 
-    @Query("DELETE FROM RedditObjectData")
+    @Query("DELETE FROM RedditObjectDataWithoutReplies")
     fun deleteAllPosts()
 
-    @Update(entity = RedditObjectData::class)
-    fun updateRedditFeed(redditObjectData: RedditObjectData)
+    @Update(entity = RedditObjectData.RedditObjectDataWithoutReplies::class)
+    fun updateRedditFeed(redditObjectData: RedditObjectData.RedditObjectDataWithoutReplies)
 }

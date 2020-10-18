@@ -1,11 +1,13 @@
 package com.diraj.kreddit.network.models
 
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class UserData(
     val name: String,
-    @SerializedName("icon_img")
+    @SerialName("icon_img")
     val iconImg: String,
-    @SerializedName("created_utc")
+    @SerialName("created_utc")
     val createdUtc: String
 )

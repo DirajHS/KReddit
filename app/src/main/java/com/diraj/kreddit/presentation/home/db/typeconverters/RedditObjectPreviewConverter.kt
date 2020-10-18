@@ -1,9 +1,9 @@
 package com.diraj.kreddit.presentation.home.db.typeconverters
 
 import androidx.room.TypeConverter
+import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.models.RedditObjectPreview
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.serialization.decodeFromString
 
 class RedditObjectPreviewConverter {
 
@@ -11,16 +11,13 @@ class RedditObjectPreviewConverter {
     fun fromObjectPreview(preview: RedditObjectPreview?) : String {
         if(preview == null)
             return ""
-        return Gson().toJson(preview)
+        return KRedditDB.jsonConverter.encodeToString(RedditObjectPreview.serializer(), preview)
     }
 
     @TypeConverter
     fun toObjectPreview(jsonObject: String?) : RedditObjectPreview? {
-        if(jsonObject == null)
+        if(jsonObject == null || jsonObject.isEmpty())
             return null
-        val listType = object : TypeToken<RedditObjectPreview>() {
-
-        }.type
-        return Gson().fromJson(jsonObject, listType)
+        return KRedditDB.jsonConverter.decodeFromString<RedditObjectPreview>(jsonObject)
     }
 }

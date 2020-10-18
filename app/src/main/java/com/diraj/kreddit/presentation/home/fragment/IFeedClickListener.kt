@@ -5,5 +5,5 @@ import com.diraj.kreddit.network.models.RedditObjectData
 
 interface IFeedClickListener {
 
-    fun onFeedItemClicked(view: View, redditObject: RedditObjectData)
+    fun onFeedItemClicked(view: View, redditObject: RedditObjectData.RedditObjectDataWithoutReplies)
 }

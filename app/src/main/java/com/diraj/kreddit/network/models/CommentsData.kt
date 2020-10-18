@@ -3,7 +3,6 @@ package com.diraj.kreddit.network.models
 import android.os.Parcelable
 import com.diraj.kreddit.network.models.post.VoteModel
 import com.diraj.kreddit.utils.KRedditConstants
-import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
@@ -11,7 +10,6 @@ data class CommentsData(
     val id : String?,
     val author: String?,
     val score: Int?,
-    @SerializedName("created_utc")
     val createdUtc: Long?,
     val body: String?,
     val name: String,

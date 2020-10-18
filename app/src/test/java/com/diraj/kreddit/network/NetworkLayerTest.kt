@@ -12,13 +12,14 @@ import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION_HEADER_PREFIX_BEAR
 import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_VALUE
 import com.diraj.kreddit.utils.UserSession
-import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.unmockkObject
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.mockwebserver.MockResponse
@@ -57,6 +58,8 @@ class NetworkLayerTest {
 
     private lateinit var mockedMMKVObject: MockedStatic<MMKV>
 
+    private lateinit var json: Json
+
     @Before
     fun setUp() {
         DaggerTestComponent.builder().appModuleForTest(TestNetworkModule()).build().inject(this)
@@ -69,6 +72,11 @@ class NetworkLayerTest {
         mockkObject(UserSession)
         every { UserSession.accessToken } returns "AccessToken"
         every { UserSession.refreshToken } returns "RefreshToken"
+
+        json = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
     }
 
     @After
@@ -143,7 +151,7 @@ class NetworkLayerTest {
             refreshToken = null
         )
 
-        val responseBody = Gson().toJson(authResponse)
+        val responseBody = json.encodeToString(authResponse)
         val refreshResponse = MockResponse()
             .setResponseCode(200)
             .setBody(responseBody)

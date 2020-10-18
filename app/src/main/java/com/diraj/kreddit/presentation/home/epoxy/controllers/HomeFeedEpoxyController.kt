@@ -14,7 +14,7 @@ import com.diraj.kreddit.presentation.home.fragment.IFeedClickListener
 class HomeFeedEpoxyController(
     private val retryClickListener: View.OnClickListener,
     asyncDiffHandler: Handler, private val feedClickListener: IFeedClickListener,
-    private val glideRequestManager: RequestManager): PagedListEpoxyController<RedditObjectData>(
+    private val glideRequestManager: RequestManager): PagedListEpoxyController<RedditObjectData.RedditObjectDataWithoutReplies>(
     defaultModelBuildingHandler, asyncDiffHandler) {
 
     private var isError: Boolean = false
@@ -41,7 +41,7 @@ class HomeFeedEpoxyController(
             }
         }
 
-    override fun buildItemModel(currentPosition: Int, item: RedditObjectData?): EpoxyModel<*> {
+    override fun buildItemModel(currentPosition: Int, item: RedditObjectData.RedditObjectDataWithoutReplies?): EpoxyModel<*> {
         /*
         We can construct models based on position for different types from RedditObjectData here.
         For now we are showing only image feed, later when we integrate ExoPlayer to play GIF's and

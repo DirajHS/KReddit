@@ -96,7 +96,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
         setRefreshListener()
     }
 
-    override fun onFeedItemClicked(view: View, redditObject: RedditObjectData) {
+    override fun onFeedItemClicked(view: View, redditObject: RedditObjectData.RedditObjectDataWithoutReplies) {
         when(view.id) {
             R.id.iv_thumb_up -> {
                 sharedViewModel.vote(CLICKED_LIKE, redditObject.deepCopy())
@@ -156,8 +156,10 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
                 }
             }
 
-            layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it == RedditResponse.Loading)
-            layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() && it is RedditResponse.Error)
+            layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
+                    it == RedditResponse.Loading)
+            layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
+                    it is RedditResponse.Error)
             if(layoutHomeFeedFragmentBinding.errorView.root.isVisible) {
                 feedPagedEpoxyController.error = getErrorText(it as RedditResponse.Error)
             }
@@ -188,11 +190,15 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
         when {
             isTablet -> {
-                tabNavHostFragment.navController.navigate(HomeFeedDetailsFragmentDirections.actionToHomeFeedDetailsFragment(redditObject))
+                tabNavHostFragment.navController.navigate(HomeFeedDetailsFragmentDirections
+                    .actionToHomeFeedDetailsFragment(redditObject))
             }
             else -> {
-                val extras = FragmentNavigatorExtras((view to redditObject.data.thumbnail) as Pair<View, String>)
-                findNavController().navigate(HomeFeedFragmentDirections.actionHomeFeedFragmentToHomeFeedDetailsFragment(redditObject), extras)
+                val extras = FragmentNavigatorExtras((view
+                        to (redditObject.data as RedditObjectData.RedditObjectDataWithoutReplies).thumbnail)
+                        as Pair<View, String>)
+                findNavController().navigate(HomeFeedFragmentDirections
+                    .actionHomeFeedFragmentToHomeFeedDetailsFragment(redditObject), extras)
             }
         }
     }

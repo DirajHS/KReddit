@@ -68,7 +68,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     private lateinit var layoutFeedItemDetailsFragmentBinding: LayoutFeedItemDetailsFragmentBinding
 
     private var redditObject: RedditObject ?= null
-    private var redditObjectData: RedditObjectData ?= null
+    private var redditObjectDataWithoutReplies: RedditObjectData.RedditObjectDataWithoutReplies ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         sharedElementEnterTransition = MaterialContainerTransform().apply {
@@ -78,7 +78,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
         }
         super.onCreate(savedInstanceState)
         redditObject = arguments?.getParcelable(REDDIT_OBJECT_PARCELABLE_KEY)
-        redditObjectData = redditObject?.data
+        redditObjectDataWithoutReplies = redditObject?.data as RedditObjectData.RedditObjectDataWithoutReplies
     }
 
     override fun onCreateView(
@@ -100,17 +100,17 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Timber.d("onViewCreated")
-        layoutFeedItemDetailsFragmentBinding.mlFeedDetails.transitionName = redditObjectData?.thumbnail
-        redditObjectData?.name?.let { feedItemDetailsViewModel.fetchFeedByName(it) }
+        layoutFeedItemDetailsFragmentBinding.mlFeedDetails.transitionName = redditObjectDataWithoutReplies?.thumbnail
+        redditObjectDataWithoutReplies?.name?.let { feedItemDetailsViewModel.fetchFeedByName(it) }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         Timber.d("onActivityCreated")
-        redditObjectData?.subredditNamePrefixed?.let { title ->
+        redditObjectDataWithoutReplies?.subredditNamePrefixed?.let { title ->
             (requireActivity() as AppCompatActivity).supportActionBar?.title = title
         }
-        if(redditObjectData == null) {
+        if(redditObjectDataWithoutReplies == null) {
             layoutFeedItemDetailsFragmentBinding.emptyFeed.root.isVisible = true
         } else {
             layoutFeedItemDetailsFragmentBinding.emptyFeed.root.isVisible = false
@@ -138,7 +138,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun fetchAndObserveFeedComments() {
-        redditObjectData?.permalink?.let { permaLink ->
+        redditObjectDataWithoutReplies?.permalink?.let { permaLink ->
             feedItemDetailsViewModel.fetchFeedItemDetails(permaLink)
             feedItemDetailsViewModel.feedDetailsLiveData.observe(viewLifecycleOwner, { redditResponse ->
                 when(redditResponse) {
@@ -169,19 +169,19 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             however, from client side, we can make sure that we are updating details page with non-null data only.
              */
             redditObject?.let {
-                redditObjectData = it
+                redditObjectDataWithoutReplies = it as RedditObjectData.RedditObjectDataWithoutReplies
                 setLikeDislikeState()
                 renderFeedDetailsImage()
                 handleLikeDislikeClick()
-                redditObjectData?.subredditNamePrefixed?.let { subReddit -> redditObjectData?.author?.let { author ->
+                redditObjectDataWithoutReplies?.subredditNamePrefixed?.let { subReddit -> redditObjectDataWithoutReplies?.author?.let { author ->
                     setSubredditWithAuthorSpanned(subReddit, String.format(requireContext().getString(R.string.reddit_author_prefixed), author))
                 } }
-                layoutFeedItemDetailsFragmentBinding.tvDetailTitle.text = redditObjectData?.title
-                layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObjectData?.getDomain()
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObjectData?.ups?.getPrettyCount()
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectData?.numComments?.getPrettyCount()
+                layoutFeedItemDetailsFragmentBinding.tvDetailTitle.text = redditObjectDataWithoutReplies?.title
+                layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObjectDataWithoutReplies?.getDomain()
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObjectDataWithoutReplies?.ups?.getPrettyCount()
+                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectDataWithoutReplies?.numComments?.getPrettyCount()
                 layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-                    .format(redditObjectData?.createdUtc?.times(1000L)?.let { createdUtc -> Date(createdUtc) })
+                    .format(redditObjectDataWithoutReplies?.createdUtc?.toLong()?.times(1000L)?.let { createdUtc -> Date(createdUtc) })
 
                 handleDomainClick()
             }
@@ -189,7 +189,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun renderFeedDetailsImage() {
-        redditObject?.data?.preview?.images?.first()?.source?.let { source ->
+        (redditObject?.data as? RedditObjectData.RedditObjectDataWithoutReplies)?.preview?.images?.first()?.source?.let { source ->
             layoutFeedItemDetailsFragmentBinding.ivDetailImage.visibility = View.VISIBLE
             ConstraintSet().apply {
                 clone(layoutFeedItemDetailsFragmentBinding.clFeedDetails)
@@ -209,7 +209,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun handleDomainClick() {
-        redditObject?.data?.urlOverriddenByDest?.let { destinationURL ->
+        (redditObject?.data as? RedditObjectData.RedditObjectDataWithReplies)?.urlOverriddenByDest?.let { destinationURL ->
             layoutFeedItemDetailsFragmentBinding.llDomain.setOnClickListener {
                 val intent = Intent(ACTION_VIEW)
                 intent.data = Uri.parse(destinationURL)
@@ -221,20 +221,20 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     private fun handleLikeDislikeClick() {
         layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.setOnClickListener {
-            redditObjectData?.deepCopy()?.let { it1 ->
+            redditObjectDataWithoutReplies?.deepCopy()?.let { it1 ->
                 sharedViewModel.vote(CLICKED_LIKE, it1)
             }
         }
         layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.setOnClickListener {
-            redditObjectData?.deepCopy()?.let { it1 ->
+            redditObjectDataWithoutReplies?.deepCopy()?.let { it1 ->
                 sharedViewModel.vote(CLICKED_DISLIKE, it1)
             }
         }
     }
 
     private fun setLikeDislikeState() {
-        Timber.d("ups for: ${redditObjectData?.title}: ${redditObjectData?.ups}")
-        when(redditObjectData?.likes) {
+        Timber.d("ups for: ${redditObjectDataWithoutReplies?.title}: ${redditObjectDataWithoutReplies?.ups}")
+        when(redditObjectDataWithoutReplies?.likes) {
             true -> {
                 layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = true
                 layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = false

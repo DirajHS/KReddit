@@ -5,19 +5,19 @@ import com.diraj.kreddit.network.AccessTokenAuthenticator
 import com.diraj.kreddit.network.interceptors.AuthenticatorInterceptor
 import com.diraj.kreddit.network.interceptors.KRedditHeaderInterceptor
 import com.diraj.kreddit.network.interceptors.ServerResponseErrorInterceptor
-import com.diraj.kreddit.network.models.RedditObjectData
-import com.diraj.kreddit.utils.RedditObjectDataParser
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
 import io.mockk.mockk
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
 import okhttp3.ConnectionPool
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockWebServer
+import retrofit2.Converter
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
@@ -102,10 +102,18 @@ class TestNetworkModule {
 
     @Provides
     @Singleton
-    fun providesGsonInstance(): Gson {
-        val gsonBuilder = GsonBuilder()
-        gsonBuilder.registerTypeAdapter(RedditObjectData::class.java, RedditObjectDataParser())
-        return gsonBuilder.create()
+    fun providesJsonInstance(): Json {
+        return Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
+    }
+
+    @ExperimentalSerializationApi
+    @Provides
+    @Singleton
+    fun providesJsonConverterFactory(jsonInstance: Json): Converter.Factory {
+        return jsonInstance.asConverterFactory("application/json".toMediaType())
     }
 
     @Provides
@@ -118,11 +126,11 @@ class TestNetworkModule {
     @Singleton
     fun providesKRedditRetrofit(
         okHttpClient: OkHttpClient,
-        gson: Gson,
+        jsonConverterFactory: Converter.Factory,
         mockWebServer: MockWebServer
     ): Retrofit {
         return Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(jsonConverterFactory)
             .client(okHttpClient)
             .baseUrl(mockWebServer.url("/"))
             .build()
@@ -133,10 +141,11 @@ class TestNetworkModule {
     @Singleton
     fun providesAuthenticatorKRedditRetrofit(
         @Named("Authenticator") okHttpClient: OkHttpClient,
-        mockWebServer: MockWebServer
+        mockWebServer: MockWebServer,
+        jsonConverterFactory: Converter.Factory
     ): Retrofit {
         return Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(jsonConverterFactory)
             .client(okHttpClient)
             .baseUrl(mockWebServer.url("/"))
             .build()

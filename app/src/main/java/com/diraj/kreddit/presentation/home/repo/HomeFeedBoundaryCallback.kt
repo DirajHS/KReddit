@@ -18,7 +18,8 @@ import java.util.concurrent.Executors
 import javax.inject.Inject
 
 class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KRedditDB,
-                               kredditRetrofit: Retrofit): PagedList.BoundaryCallback<RedditObjectData>() {
+                               kredditRetrofit: Retrofit):
+    PagedList.BoundaryCallback<RedditObjectData.RedditObjectDataWithoutReplies>() {
 
     private val executor = Executors.newSingleThreadExecutor()
     private val helper = PagingRequestHelper(executor)
@@ -49,7 +50,7 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
         }
     }
 
-    override fun onItemAtEndLoaded(itemAtEnd: RedditObjectData) {
+    override fun onItemAtEndLoaded(itemAtEnd: RedditObjectData.RedditObjectDataWithoutReplies) {
         super.onItemAtEndLoaded(itemAtEnd)
         helper.runIfNotRunning(PagingRequestHelper.RequestType.AFTER) { helperCallback ->
             feedApiStateLiveData.postValue(RedditResponse.Loading)
@@ -71,10 +72,10 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
     }
 
     private fun insertFeed(baseModel: BaseModel) {
-        val redditFeedList = mutableListOf<RedditObjectData>()
+        val redditFeedList = mutableListOf<RedditObjectData.RedditObjectDataWithoutReplies>()
         val start = kRedditDB.kredditPostsDAO().getNextIndexInReddit()
         baseModel.data.children.mapIndexed { index, redditObject ->
-            val redditObjectData = redditObject.data
+            val redditObjectData = redditObject.data as RedditObjectData.RedditObjectDataWithoutReplies
             redditObjectData.indexInResponse = start + index
             redditObjectData
         }.forEach {

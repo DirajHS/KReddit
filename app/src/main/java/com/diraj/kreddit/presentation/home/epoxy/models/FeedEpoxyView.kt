@@ -37,7 +37,7 @@ class FeedEpoxyView @JvmOverloads constructor(
 ) : CardView(c, a, defStyleAttr) {
 
     @ModelProp
-    lateinit var redditObject: RedditObjectData
+    lateinit var redditObject: RedditObjectData.RedditObjectDataWithoutReplies
 
     var feedItemClickListener: IFeedClickListener ?= null
         @CallbackProp set
@@ -57,7 +57,7 @@ class FeedEpoxyView @JvmOverloads constructor(
             setSubredditWithAuthorSpanned(subReddit, String.format(context.getString(R.string.reddit_author_prefixed), author))
         } }
         feedListItemBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-            .format(redditObject.createdUtc?.times(1000L)?.let { Date(it) })
+            .format(redditObject.createdUtc?.toLong()?.times(1000L)?.let { Date(it) })
 
         redditObject.preview?.images?.first()?.source?.let { source ->
             redditObject.preview?.images?.first()?.resolutions

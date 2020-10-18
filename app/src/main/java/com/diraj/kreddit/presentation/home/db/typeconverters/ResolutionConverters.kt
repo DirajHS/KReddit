@@ -1,9 +1,8 @@
 package com.diraj.kreddit.presentation.home.db.typeconverters
 
 import androidx.room.TypeConverter
+import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.models.Resolutions
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 
 class ResolutionConverters {
 
@@ -11,16 +10,13 @@ class ResolutionConverters {
     fun fromObjectPreview(preview: Resolutions?) : String {
         if(preview == null)
             return ""
-        return Gson().toJson(preview)
+        return KRedditDB.jsonConverter.encodeToString(Resolutions.serializer(), preview)
     }
 
     @TypeConverter
     fun toObjectPreview(jsonObject: String?) : Resolutions? {
         if(jsonObject == null)
             return null
-        val listType = object : TypeToken<Resolutions>() {
-
-        }.type
-        return Gson().fromJson(jsonObject, listType)
+        return KRedditDB.jsonConverter.decodeFromString(Resolutions.serializer(), jsonObject)
     }
 }

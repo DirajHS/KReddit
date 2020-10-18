@@ -30,7 +30,7 @@ class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback
 
     private val dataSource = kredditDB.kredditPostsDAO().posts()
 
-    val pagedFeedList: LiveData<PagedList<RedditObjectData>> =
+    val pagedFeedList: LiveData<PagedList<RedditObjectData.RedditObjectDataWithoutReplies>> =
         LivePagedListBuilder(dataSource, config)
             .setBoundaryCallback(homeFeedBoundaryCallback)
             .build()
