@@ -66,17 +66,21 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
         savedInstanceState: Bundle?
     ): View? {
         Timber.d("onCreateView")
-        layoutHomeFeedFragmentBinding = LayoutHomeFeedFragmentBinding.inflate(inflater, container, false)
+        return if(!::layoutHomeFeedFragmentBinding.isInitialized) {
+            layoutHomeFeedFragmentBinding = LayoutHomeFeedFragmentBinding.inflate(inflater, container, false)
 
-        val glideRequestManager = GlideApp.with(this)
-        val handlerThread = HandlerThread("epoxy")
-        handlerThread.start()
-        handler = Handler(handlerThread.looper)
-        feedPagedEpoxyController = HomeFeedEpoxyController({ homeFeedViewModel.retry() }, handler, this, glideRequestManager)
-        feedPagedEpoxyController.isDebugLoggingEnabled = true
+            val glideRequestManager = GlideApp.with(this)
+            val handlerThread = HandlerThread("epoxy")
+            handlerThread.start()
+            handler = Handler(handlerThread.looper)
+            feedPagedEpoxyController = HomeFeedEpoxyController({ homeFeedViewModel.retry() }, handler, this, glideRequestManager)
+            feedPagedEpoxyController.isDebugLoggingEnabled = true
 
-        layoutHomeFeedFragmentBinding.ervFeed.setController(feedPagedEpoxyController)
-        return layoutHomeFeedFragmentBinding.root
+            layoutHomeFeedFragmentBinding.ervFeed.setController(feedPagedEpoxyController)
+            layoutHomeFeedFragmentBinding.root
+        } else {
+            layoutHomeFeedFragmentBinding.root
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

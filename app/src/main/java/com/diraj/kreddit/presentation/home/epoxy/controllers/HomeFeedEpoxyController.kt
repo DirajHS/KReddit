@@ -10,6 +10,7 @@ import com.diraj.kreddit.presentation.home.epoxy.models.ErrorEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.FeedEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.LoadingEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.fragment.IFeedClickListener
+import java.util.*
 
 class HomeFeedEpoxyController(
     private val retryClickListener: View.OnClickListener,
@@ -75,7 +76,7 @@ class HomeFeedEpoxyController(
                 super.addModels(
                     models.plus(
                         ErrorEpoxyViewModel_()
-                            .id("ErrorEpoxyViewModel_")
+                            .id("ErrorEpoxyViewModel_${UUID.randomUUID()}")
                             .errorMessage(error ?: "")
                             .retryClickListener(retryClickListener)
                     ).filter { it !is LoadingEpoxyViewModel_ }
@@ -85,7 +86,8 @@ class HomeFeedEpoxyController(
                 super.addModels(
                     models.plus(
                         LoadingEpoxyViewModel_()
-                            .id("LoadingEpoxyViewModel_")
+                            .id(if(models.isEmpty())"LoadingEpoxyViewModel_Initial"
+                            else "LoadingEpoxyViewModel_Next${UUID.randomUUID()}")
                     ).distinct()
                 )
             }
