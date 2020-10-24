@@ -1,6 +1,9 @@
 package com.diraj.kreddit.presentation.home.repo
 
 import androidx.lifecycle.MutableLiveData
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.RedditAPIService
 import com.diraj.kreddit.network.RedditResponse
@@ -14,6 +17,18 @@ import javax.inject.Inject
 
 class HomeFeedRepo @Inject constructor(private val kRedditDB: KRedditDB,
                                        private val kredditRetrofit: Retrofit) {
+
+    @ExperimentalPagingApi
+    private val pager = Pager(
+        config = PagingConfig(pageSize = PAGE_SIZE, prefetchDistance = PREFETCH_DISTANCE,
+            initialLoadSize = PAGE_SIZE * 5), remoteMediator = PostsRemoteMediator(kRedditDB, kredditRetrofit),
+        pagingSourceFactory = {
+            kRedditDB.kredditPostsDAO().getHomePosts()
+        }
+    ).flow
+
+    @ExperimentalPagingApi
+    fun getHomeFeedPosts() = pager
 
     suspend fun refresh(feedRefreshAPIState: MutableLiveData<RedditResponse>) {
         feedRefreshAPIState.postValue(RedditResponse.Loading)
@@ -40,5 +55,10 @@ class HomeFeedRepo @Inject constructor(private val kRedditDB: KRedditDB,
             redditFeedList.add(it)
         }
         kRedditDB.kredditPostsDAO().insert(redditFeedList)
+    }
+
+    companion object {
+        const val PAGE_SIZE = 25
+        const val PREFETCH_DISTANCE = 50
     }
 }

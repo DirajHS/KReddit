@@ -52,6 +52,7 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
+        freeCompilerArgs += ["-Xopt-in=kotlin.RequiresOptIn"]
     }
 
     kapt {
@@ -91,6 +92,10 @@ dependencies {
 
     //Google Material
     implementation "com.google.android.material:material:1.2.1"
+
+    //Paging3
+    def paging_version = "3.0.0-alpha07"
+    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
 
     //Epoxy
     def epoxy_version = "3.11.0"
@@ -169,7 +174,7 @@ dependencies {
     //Rounded ImageView
     implementation "com.makeramen:roundedimageview:2.3.0"
 
-    def room_version = "2.2.5"
+    def room_version = "2.3.0-alpha01"
     implementation "androidx.room:room-runtime:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-ktx:$room_version"

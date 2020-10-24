@@ -19,12 +19,10 @@ import kotlinx.serialization.Serializable
 @Serializable(with = RedditObjectDataSerializer::class)
 sealed class RedditObjectData: Parcelable {
 
+    @Serializable
     @Parcelize
     @Entity
-    @TypeConverters(value = [RedditObjectPreviewConverter::class, BaseModelConverter::class,
-        RedditObjectConverter::class,
-        ResolutionConverters::class])
-    @kotlinx.serialization.Serializable
+    @TypeConverters(value = [RedditObjectPreviewConverter::class])
     data class RedditObjectDataWithoutReplies (
         val author: String? = null,
         val score: Int?= null,

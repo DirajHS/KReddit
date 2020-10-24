@@ -1,6 +1,7 @@
 package com.diraj.kreddit.presentation.home.db
 
 import androidx.paging.DataSource
+import androidx.paging.PagingSource
 import androidx.room.*
 import com.diraj.kreddit.network.models.RedditObjectData
 import kotlinx.coroutines.flow.Flow
@@ -15,8 +16,14 @@ interface KRedditPostsDAO {
     @Query("SELECT * FROM RedditObjectDataWithoutReplies ORDER BY indexInResponse ASC")
     fun posts(): DataSource.Factory<Int, RedditObjectData.RedditObjectDataWithoutReplies>
 
+    @Query("SELECT * FROM RedditObjectDataWithoutReplies ORDER BY indexInResponse ASC")
+    fun getHomePosts(): PagingSource<Int, RedditObjectData.RedditObjectDataWithoutReplies>
+
     @Query("SELECT MAX(indexInResponse) + 1 FROM RedditObjectDataWithoutReplies")
     fun getNextIndexInReddit() : Int
+
+    @Query("SELECT * FROM RedditObjectDataWithoutReplies ORDER BY indexInResponse DESC LIMIT 1")
+    fun getNextKey(): RedditObjectData.RedditObjectDataWithoutReplies?
 
     @Query("SELECT * FROM RedditObjectDataWithoutReplies WHERE name == :feedName")
     fun getFeedByName(feedName: String): Flow<RedditObjectData.RedditObjectDataWithoutReplies>

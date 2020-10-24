@@ -1,8 +1,6 @@
 package com.diraj.kreddit.presentation.home.fragment
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,18 +9,21 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.LoadState
 import com.diraj.kreddit.R
 import com.diraj.kreddit.databinding.LayoutHomeFeedFragmentBinding
 import com.diraj.kreddit.di.GlideApp
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
-import com.diraj.kreddit.network.RedditResponse
 import com.diraj.kreddit.network.models.RedditObject
 import com.diraj.kreddit.network.models.RedditObjectData
-import com.diraj.kreddit.presentation.home.epoxy.controllers.HomeFeedEpoxyController
+import com.diraj.kreddit.presentation.home.recyclerview.adapter.PostsAdapter
+import com.diraj.kreddit.presentation.home.recyclerview.adapter.PostsLoadStateAdapter
 import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
 import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
@@ -32,6 +33,9 @@ import com.diraj.kreddit.utils.getViewModel
 import com.diraj.kreddit.utils.sharedViewModel
 import com.google.android.material.transition.Hold
 import com.google.android.material.transition.MaterialElevationScale
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import timber.log.Timber
 import javax.inject.Inject
@@ -54,45 +58,39 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
     private lateinit var layoutHomeFeedFragmentBinding: LayoutHomeFeedFragmentBinding
 
-    private lateinit var feedPagedEpoxyController: HomeFeedEpoxyController
-    private lateinit var handler: Handler
+    private lateinit var postsAdapter: PostsAdapter
 
     private val tabNavHostFragment: NavHostFragment
         get() = childFragmentManager.findFragmentById(R.id.tablet_nav_container) as NavHostFragment
 
+    @ExperimentalPagingApi
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         Timber.d("onCreateView")
-        layoutHomeFeedFragmentBinding = LayoutHomeFeedFragmentBinding.inflate(inflater, container, false)
+        return if(!::layoutHomeFeedFragmentBinding.isInitialized) {
+            layoutHomeFeedFragmentBinding =
+                LayoutHomeFeedFragmentBinding.inflate(inflater, container, false)
 
-        val glideRequestManager = GlideApp.with(this)
-        val handlerThread = HandlerThread("epoxy")
-        handlerThread.start()
-        handler = Handler(handlerThread.looper)
-        feedPagedEpoxyController = HomeFeedEpoxyController({ homeFeedViewModel.retry() }, handler, this, glideRequestManager)
-        feedPagedEpoxyController.isDebugLoggingEnabled = true
+            (requireActivity() as AppCompatActivity).supportActionBar?.title = getString(R.string.home_fragment_title)
 
-        layoutHomeFeedFragmentBinding.ervFeed.setController(feedPagedEpoxyController)
-        return layoutHomeFeedFragmentBinding.root
+            val glideRequestManager = GlideApp.with(this)
+            postsAdapter = PostsAdapter(glideRequestManager, this)
+            initAdapter()
+            handleRetryClick()
+            setRefreshListener()
+            layoutHomeFeedFragmentBinding.root
+        } else {
+            layoutHomeFeedFragmentBinding.root
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         postponeEnterTransition()
         view.doOnPreDraw { startPostponedEnterTransition() }
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        Timber.d("onActivityCreated")
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = getString(R.string.home_fragment_title)
-        observeFeedData()
-        observeFeedApiState()
-        handleRetryClick()
-        setRefreshListener()
     }
 
     override fun onFeedItemClicked(view: View, redditObject: RedditObjectData.RedditObjectDataWithoutReplies) {
@@ -116,6 +114,30 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
         }
     }
 
+    @ExperimentalPagingApi
+    private fun initAdapter() {
+        layoutHomeFeedFragmentBinding.rvFeed.adapter = postsAdapter.withLoadStateHeaderAndFooter(
+            header = PostsLoadStateAdapter(postsAdapter),
+            footer = PostsLoadStateAdapter(postsAdapter)
+        )
+
+        viewLifecycleOwner.lifecycleScope.launchWhenCreated {
+            @OptIn(ExperimentalCoroutinesApi::class)
+            postsAdapter.loadStateFlow.collectLatest { loadStates ->
+                layoutHomeFeedFragmentBinding.swipeRefreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            @OptIn(ExperimentalCoroutinesApi::class)
+            homeFeedViewModel.postsFlow.collectLatest {
+                postsAdapter.submitData(it)
+            }
+        }
+
+        observeAdapterLoadState()
+    }
+
     private fun setRefreshListener() {
         layoutHomeFeedFragmentBinding.swipeRefreshLayout
             .setColorSchemeColors(ContextCompat.getColor(requireContext(), R.color.like_true_color),
@@ -123,59 +145,48 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
                 ContextCompat.getColor(requireContext(), R.color.colorPrimary),
                 ContextCompat.getColor(requireContext(), R.color.colorAccent))
         layoutHomeFeedFragmentBinding.swipeRefreshLayout.setOnRefreshListener {
-            homeFeedViewModel.refresh()
+            postsAdapter.refresh()
         }
     }
 
-    private fun observeFeedData() {
-        Timber.d("observeFeedData")
-        homeFeedViewModel.pagedFeedList.observe(viewLifecycleOwner, {
-            Timber.d("submitting feed list")
-            feedPagedEpoxyController.submitList(it)
-        })
-    }
-
-    private fun observeFeedApiState() {
-        Timber.d("observeFeedApiState")
-        homeFeedViewModel.getFeedApiState().observe(viewLifecycleOwner, {
-            if(!homeFeedViewModel.listIsEmpty()) {
-                when (it) {
-                    is RedditResponse.Loading -> {
-                        feedPagedEpoxyController.error = null
-                        feedPagedEpoxyController.isLoading = true
-                    }
-                    is RedditResponse.Success<*> -> {
-                        feedPagedEpoxyController.error = null
-                        feedPagedEpoxyController.isLoading = false
-                    }
-                    is RedditResponse.Error -> {
-                        feedPagedEpoxyController.isLoading = false
-                        feedPagedEpoxyController.error = getErrorText(redditResponse = it)
+    private fun observeAdapterLoadState() {
+        Timber.d("observeAdapterLoadState")
+        postsAdapter.addLoadStateListener { loadState ->
+            Timber.d("load state: ${loadState.source}")
+            when(loadState.source.refresh) {
+                is LoadState.Loading -> {
+                    if(postsAdapter.itemCount > 0) {
+                        toggleLayoutVisibility(postsVisibility = true,
+                            errorVisibility = false, loadingVisibility = false)
+                    } else {
+                        toggleLayoutVisibility(postsVisibility = false,
+                            errorVisibility = false, loadingVisibility = true)
                     }
                 }
+                is LoadState.NotLoading -> {
+                    toggleLayoutVisibility(postsVisibility = true, errorVisibility = false,
+                        loadingVisibility =  false)
+                }
+                is LoadState.Error -> {
+                    toggleLayoutVisibility(postsVisibility = false,
+                        errorVisibility = true, loadingVisibility = false)
+                    layoutHomeFeedFragmentBinding.errorView.tvError.text = getErrorText((loadState.source.refresh as LoadState.Error).error)
+                }
             }
-
-            layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
-                    it == RedditResponse.Loading)
-            layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
-                    it is RedditResponse.Error)
-            if(layoutHomeFeedFragmentBinding.errorView.root.isVisible) {
-                feedPagedEpoxyController.error = getErrorText(it as RedditResponse.Error)
-            }
-            layoutHomeFeedFragmentBinding.swipeRefreshLayout.isRefreshing = (it == RedditResponse.Loading)
-        })
+            layoutHomeFeedFragmentBinding.swipeRefreshLayout.isRefreshing = (loadState.source.refresh == LoadState.Loading)
+        }
     }
 
     private fun handleRetryClick() {
         layoutHomeFeedFragmentBinding.errorView.root.setOnClickListener {
-            homeFeedViewModel.retry()
+            postsAdapter.retry()
         }
     }
 
-    private fun getErrorText(redditResponse: RedditResponse.Error): String? {
-        return when (redditResponse.ex) {
+    private fun getErrorText(throwableError: Throwable): String? {
+        return when (throwableError) {
             is HttpException -> {
-                "${redditResponse.ex.code()}: ${redditResponse.ex.message}"
+                "${throwableError.code()}: ${throwableError.message}"
             }
             else -> {
                 getString(R.string.generic_error_string)
@@ -200,5 +211,12 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
                     .actionHomeFeedFragmentToHomeFeedDetailsFragment(redditObject), extras)
             }
         }
+    }
+
+    private fun toggleLayoutVisibility(postsVisibility: Boolean,
+                                       loadingVisibility: Boolean, errorVisibility: Boolean) {
+        layoutHomeFeedFragmentBinding.rvFeed.isVisible = postsVisibility
+        layoutHomeFeedFragmentBinding.loadingView.root.isVisible = loadingVisibility
+        layoutHomeFeedFragmentBinding.errorView.root.isVisible = errorVisibility
     }
 }

@@ -3,13 +3,13 @@ package com.diraj.kreddit.presentation.home.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.LivePagedListBuilder
-import androidx.paging.PagedList
+import androidx.paging.*
 import com.diraj.kreddit.db.KRedditDB
 import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.repo.HomeFeedBoundaryCallback
 import com.diraj.kreddit.presentation.home.repo.HomeFeedRepo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,9 +31,23 @@ class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback
     private val dataSource = kredditDB.kredditPostsDAO().posts()
 
     val pagedFeedList: LiveData<PagedList<RedditObjectData.RedditObjectDataWithoutReplies>> =
-        LivePagedListBuilder(dataSource, config)
+        Pager(
+            PagingConfig(
+                config.pageSize,
+                config.prefetchDistance,
+                config.enablePlaceholders,
+                config.initialLoadSizeHint,
+                config.maxSize
+            ),
+            this.initialLoadKey,
+            dataSource.asPagingSourceFactory(Dispatchers.IO)
+        ).liveData
             .setBoundaryCallback(homeFeedBoundaryCallback)
             .build()
+
+    @ExperimentalPagingApi
+    val postsFlow: Flow<PagingData<RedditObjectData.RedditObjectDataWithoutReplies>> =
+        homeFeedRepo.getHomeFeedPosts().cachedIn(viewModelScope)
 
     fun getFeedApiState() = homeFeedBoundaryCallback.feedApiStateLiveData
 
