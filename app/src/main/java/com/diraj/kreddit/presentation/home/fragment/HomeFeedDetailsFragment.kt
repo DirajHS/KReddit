@@ -19,19 +19,19 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.models.CommentsData
+import com.diraj.kreddit.data.models.RedditObject
+import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.network.RedditResponse
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_DISLIKE
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_LIKE
 import com.diraj.kreddit.databinding.LayoutFeedItemDetailsFragmentBinding
 import com.diraj.kreddit.di.GlideApp
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
-import com.diraj.kreddit.network.RedditResponse
-import com.diraj.kreddit.network.models.CommentsData
-import com.diraj.kreddit.network.models.RedditObject
-import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.groupie.ExpandableCommentGroup
 import com.diraj.kreddit.presentation.home.viewmodel.FeedItemDetailsViewModel
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
-import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
-import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.KRedditConstants.FEED_DETAILS_MOTION_PROGRESS_KEY
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.REDDIT_OBJECT_PARCELABLE_KEY
@@ -295,7 +295,7 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     private fun handleCommentsFetchError(permaLink: String, redditResponse: RedditResponse.Error) {
         when(redditResponse.ex) {
             is HttpException -> {
-                layoutFeedItemDetailsFragmentBinding.errorView.tvError.text = redditResponse.ex.message()
+                layoutFeedItemDetailsFragmentBinding.errorView.tvError.text = (redditResponse.ex as HttpException).message()
             }
             is IOException -> {
                 layoutFeedItemDetailsFragmentBinding.errorView.tvError.text = getString(R.string.generic_error_string)

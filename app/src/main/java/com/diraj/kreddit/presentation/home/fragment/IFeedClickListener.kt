@@ -1,7 +1,7 @@
 package com.diraj.kreddit.presentation.home.fragment
 
 import android.view.View
-import com.diraj.kreddit.network.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectData
 
 interface IFeedClickListener {
 

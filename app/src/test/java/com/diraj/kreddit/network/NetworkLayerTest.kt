@@ -2,16 +2,14 @@ package com.diraj.kreddit.network
 
 import android.util.Base64
 import com.diraj.kreddit.BuildConfig
+import com.diraj.kreddit.data.models.AccessTokenModel
 import com.diraj.kreddit.di.DaggerTestComponent
 import com.diraj.kreddit.di.TestNetworkModule
-import com.diraj.kreddit.network.models.AccessTokenModel
-import com.diraj.kreddit.utils.CommentsParser
 import com.diraj.kreddit.utils.KRedditConstants
 import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION
 import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION_HEADER_PREFIX_BEARER
 import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_VALUE
-import com.diraj.kreddit.utils.UserSession
 import com.tencent.mmkv.MMKV
 import io.mockk.every
 import io.mockk.mockkObject
@@ -20,7 +18,6 @@ import io.mockk.unmockkObject
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -69,9 +66,9 @@ class NetworkLayerTest {
         mockedMMKVObject = mockStatic(MMKV::class.java)
         `when`(MMKV.defaultMMKV()).thenReturn(mockedMMKV)
 
-        mockkObject(UserSession)
-        every { UserSession.accessToken } returns "AccessToken"
-        every { UserSession.refreshToken } returns "RefreshToken"
+        mockkObject(com.diraj.kreddit.data.user.UserSession)
+        every { com.diraj.kreddit.data.user.UserSession.accessToken } returns "AccessToken"
+        every { com.diraj.kreddit.data.user.UserSession.refreshToken } returns "RefreshToken"
 
         json = Json {
             ignoreUnknownKeys = true
@@ -81,7 +78,7 @@ class NetworkLayerTest {
 
     @After
     fun tearDown() {
-        unmockkObject(UserSession)
+        unmockkObject(com.diraj.kreddit.data.user.UserSession)
         mockedMMKVObject.close()
     }
 
@@ -128,7 +125,7 @@ class NetworkLayerTest {
         assertThat(recordedRequest.getHeader(USER_AGENT_KEY), `is`(USER_AGENT_VALUE))
         assertThat(
             recordedRequest.getHeader(AUTHORIZATION),
-            `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${UserSession.accessToken}")
+            `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${com.diraj.kreddit.data.user.UserSession.accessToken}")
         )
         return@runBlocking
     }
@@ -140,7 +137,7 @@ class NetworkLayerTest {
 
         mockkStatic(Base64::class)
         every { Base64.encodeToString(authString.toByteArray(), Base64.NO_WRAP) } returns "Base64EncodedString"
-        every { UserSession.accessToken } returns "NewAccessToken"
+        every { com.diraj.kreddit.data.user.UserSession.accessToken } returns "NewAccessToken"
 
         val invalidTokenResponse = MockResponse().setResponseCode(401)
         val authResponse = AccessTokenModel(
@@ -181,7 +178,7 @@ class NetworkLayerTest {
         mockWebServer.takeRequest()
         val retryRequest = mockWebServer.takeRequest()
         val header = retryRequest.getHeader(AUTHORIZATION)
-        assertThat(UserSession.accessToken, `is`(authResponse.accessToken))
+        assertThat(com.diraj.kreddit.data.user.UserSession.accessToken, `is`(authResponse.accessToken))
         assertThat(header, `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${authResponse.accessToken}"))
         assert(response.data.children.size == 25)
     }
@@ -194,7 +191,7 @@ class NetworkLayerTest {
 
         mockWebServer.enqueue(MockResponse())
 
-        val postInfo = "token=${UserSession.refreshToken}&token_type_hint=refresh_token"
+        val postInfo = "token=${com.diraj.kreddit.data.user.UserSession.refreshToken}&token_type_hint=refresh_token"
         val postBody = postInfo.toRequestBody(KRedditConstants.MEDIA_TYPE.toMediaTypeOrNull())
 
         authenticatorRetrofit.create(RedditAPIService::class.java).logout(postBody)
@@ -220,7 +217,7 @@ class NetworkLayerTest {
         mockWebServer.enqueue(mockedHomeFeedAPIResponse)
 
         val feedDetails = redditAPIService.fetchCommentsFromPermalink("/r/science/comments/iqdiie/researchers_put_people_aged_over_65_with_some/.json")
-        val parsedComments = CommentsParser(feedDetails).parseComments()
+        val parsedComments = com.diraj.kreddit.data.utils.CommentsParser(feedDetails).parseComments()
 
         val firstComment = "I work in an assisted living facility in the US and can say I knew this without the use of a study.. while I work with people generally over age 80 and each one has a diagnosis of dementia already, anytime speech, occupational or physical therapy is invoked there decline slows or they even have improvement. While this is expected of therapy, this is more noticeable in families that are more interactive with those who are affected.. or put differently the more attention the person gets the “better” the dementia or more specifically the behaviors associated with- improves. Nice to have something published tho as dementia is still a very nuanced thing in the medical world... it takes a village"
         val firstCommentReply = "When my mom was living on her own, she pretty much stared at the walls all day. A few phone calls each day to her friends, but not much more stimulation. She was really starting to lose it. Now she lives with me and is constantly exposed to other people around as well as YouTube videos about history and archaeology and travel and the places  she has been and the things that she has done and cherished all her life. She is a different person now. Her cognitive  abilities and general joy in life are much improved.  I think this change has added many years to her life."

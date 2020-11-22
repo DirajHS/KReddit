@@ -14,6 +14,7 @@ import dagger.android.support.AndroidSupportInjection
 object AppComponentsInjector {
     fun init(kRedditApp: KReddit) {
         DaggerAppComponent.builder().application(kRedditApp)
+            .context(kRedditApp)
             .build().inject(kRedditApp)
         kRedditApp
             .registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {

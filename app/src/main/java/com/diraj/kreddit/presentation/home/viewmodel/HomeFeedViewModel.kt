@@ -5,17 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.diraj.kreddit.db.KRedditDB
-import com.diraj.kreddit.network.models.RedditObjectData
-import com.diraj.kreddit.presentation.home.repo.HomeFeedBoundaryCallback
-import com.diraj.kreddit.presentation.home.repo.HomeFeedRepo
+import com.diraj.kreddit.data.db.KRedditDB
+import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.repo.home.HomeFeedBoundaryCallback
+import com.diraj.kreddit.data.repo.home.HomeFeedRepo
+import com.diraj.kreddit.data.utils.DataLayerConstants.POSTS_PAGE_SIZE
+import com.diraj.kreddit.data.utils.DataLayerConstants.POSTS_PREFETCH_DISTANCE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback: HomeFeedBoundaryCallback,
                                             private val homeFeedRepo: HomeFeedRepo,
-    kredditDB: KRedditDB): ViewModel() {
+                                            kredditDB: KRedditDB): ViewModel() {
 
     init {
         homeFeedBoundaryCallback.coroutineScope = viewModelScope
@@ -23,9 +25,9 @@ class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback
 
     private val config = PagedList.Config.Builder()
         .setEnablePlaceholders(true)
-        .setPageSize(PAGE_SIZE)
-        .setInitialLoadSizeHint(5 * PAGE_SIZE)
-        .setPrefetchDistance(PREFETCH_DISTANCE)
+        .setPageSize(POSTS_PAGE_SIZE)
+        .setInitialLoadSizeHint(5 * POSTS_PAGE_SIZE)
+        .setPrefetchDistance(POSTS_PREFETCH_DISTANCE)
         .build()
 
     private val dataSource = kredditDB.kredditPostsDAO().posts()
@@ -45,10 +47,5 @@ class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback
         viewModelScope.launch(context = Dispatchers.IO) {
             homeFeedRepo.refresh(getFeedApiState())
         }
-    }
-
-    companion object {
-        const val PAGE_SIZE = 25
-        const val PREFETCH_DISTANCE = 50
     }
 }

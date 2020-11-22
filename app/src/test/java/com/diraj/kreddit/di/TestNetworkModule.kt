@@ -1,10 +1,10 @@
 package com.diraj.kreddit.di
 
 import com.diraj.kreddit.KReddit
-import com.diraj.kreddit.network.AccessTokenAuthenticator
-import com.diraj.kreddit.network.interceptors.AuthenticatorInterceptor
-import com.diraj.kreddit.network.interceptors.KRedditHeaderInterceptor
-import com.diraj.kreddit.network.interceptors.ServerResponseErrorInterceptor
+import com.diraj.kreddit.data.network.AccessTokenAuthenticator
+import com.diraj.kreddit.data.network.interceptors.AuthenticatorInterceptor
+import com.diraj.kreddit.data.network.interceptors.KRedditHeaderInterceptor
+import com.diraj.kreddit.data.network.interceptors.ServerResponseErrorInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -64,7 +64,7 @@ class TestNetworkModule {
         serverResponseErrorInterceptor: ServerResponseErrorInterceptor,
         kRedditHeaderInterceptor: KRedditHeaderInterceptor,
         connectionPool: ConnectionPool,
-        accessTokenAuthenticator: AccessTokenAuthenticator,
+        accessTokenAuthenticator: com.diraj.kreddit.data.network.AccessTokenAuthenticator,
     ): OkHttpClient {
 
         val builder = OkHttpClient.Builder()

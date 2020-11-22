@@ -6,7 +6,9 @@ import com.diraj.kreddit.presentation.home.di.HomeActivityModule
 import com.diraj.kreddit.presentation.login.AuthenticationActivity
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@ExperimentalCoroutinesApi
 @Module
 abstract class ActivityBuilderModule {
 

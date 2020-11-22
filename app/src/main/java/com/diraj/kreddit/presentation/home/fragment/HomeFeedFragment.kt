@@ -15,18 +15,18 @@ import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.models.RedditObject
+import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.network.RedditResponse
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_DISLIKE
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_LIKE
 import com.diraj.kreddit.databinding.LayoutHomeFeedFragmentBinding
 import com.diraj.kreddit.di.GlideApp
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
-import com.diraj.kreddit.network.RedditResponse
-import com.diraj.kreddit.network.models.RedditObject
-import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.epoxy.controllers.HomeFeedEpoxyController
 import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
-import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
-import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.androidLazy
 import com.diraj.kreddit.utils.getViewModel
 import com.diraj.kreddit.utils.sharedViewModel
@@ -179,7 +179,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     private fun getErrorText(redditResponse: RedditResponse.Error): String? {
         return when (redditResponse.ex) {
             is HttpException -> {
-                "${redditResponse.ex.code()}: ${redditResponse.ex.message}"
+                "${(redditResponse.ex as HttpException).code()}: ${redditResponse.ex.message}"
             }
             else -> {
                 getString(R.string.generic_error_string)

@@ -1,62 +1,22 @@
 package com.diraj.kreddit.presentation.login.viewmodel
 
-import android.util.Base64
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import com.diraj.kreddit.BuildConfig
-import com.diraj.kreddit.network.RedditAPIService
-import com.diraj.kreddit.network.RedditResponse
-import com.diraj.kreddit.utils.KRedditConstants.MEDIA_TYPE
-import com.diraj.kreddit.utils.UserSession
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.HttpException
-import retrofit2.Retrofit
-import java.net.UnknownHostException
+import com.diraj.kreddit.data.network.RedditResponse
+import com.diraj.kreddit.data.repo.auth.AuthenticationRepo
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
-import javax.inject.Named
 
-class AuthenticationViewModel @Inject constructor(@Named("Authenticator") var redditRetrofit: Retrofit): ViewModel() {
-
-    private val _accessCodeLiveData = MutableLiveData<RedditResponse>()
-    private val accessCodeLiveData: LiveData<RedditResponse>
-        get() = _accessCodeLiveData
+@ExperimentalCoroutinesApi
+class AuthenticationViewModel @Inject constructor(private val authRepo: AuthenticationRepo): ViewModel() {
 
     fun processAccessCode(code: String): LiveData<RedditResponse> {
-        viewModelScope.launch {
-            _accessCodeLiveData.postValue(RedditResponse.Loading)
-            val authString = BuildConfig.REDDIT_CLIENT_ID + ":"
-            val encodedAuthString = Base64.encodeToString(authString.toByteArray(),
-                Base64.NO_WRAP)
-            val grant = "grant_type=authorization_code&code=$code&redirect_uri=${BuildConfig.REDDIT_REDIRECT_URI}"
-
-            val postBody = grant.toRequestBody(MEDIA_TYPE.toMediaTypeOrNull())
-
-            val redditAPIService = redditRetrofit.create(RedditAPIService::class.java)
-            try {
-                val accessCodeResponse = redditAPIService.getAccessToken(postBody)
-                accessCodeResponse.let {
-                    val accessToken = accessCodeResponse.accessToken
-                    val refreshToken = accessCodeResponse.refreshToken
-
-                    if (refreshToken != null) {
-                        UserSession.open(accessToken, refreshToken)
-                    }
-                    _accessCodeLiveData.postValue(RedditResponse.Success(null))
-                }
-            } catch (ex: HttpException) {
-                _accessCodeLiveData.postValue(RedditResponse.Error(ex))
-                return@launch
-            } catch (ex: UnknownHostException) {
-                _accessCodeLiveData.postValue(RedditResponse.Error(ex))
-                return@launch
-            }
-
-        }
-
-        return accessCodeLiveData
+        val accessCodeResponse = authRepo.getAccessToken(code)
+        return accessCodeResponse.onStart {
+            emit(RedditResponse.Loading)
+        }.asLiveData(viewModelScope.coroutineContext)
     }
 }

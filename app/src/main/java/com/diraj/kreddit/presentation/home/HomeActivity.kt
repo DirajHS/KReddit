@@ -13,21 +13,23 @@ import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.models.UserData
+import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.databinding.HomeNavigationHeaderBinding
 import com.diraj.kreddit.databinding.LayoutActivityHomeBinding
 import com.diraj.kreddit.di.ViewModelFactory
-import com.diraj.kreddit.network.RedditResponse
-import com.diraj.kreddit.network.models.UserData
 import com.diraj.kreddit.presentation.home.viewmodel.HomeActivityViewModel
 import com.diraj.kreddit.presentation.login.AuthenticationActivity
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.ocpsoft.prettytime.PrettyTime
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class HomeActivity : AppCompatActivity(), HasAndroidInjector {
 
     @field:Inject
@@ -84,7 +86,6 @@ class HomeActivity : AppCompatActivity(), HasAndroidInjector {
     }
 
     private fun fetchProfileData() {
-        homeActivityViewModel.fetchProfileInfo()
         homeActivityViewModel.userInfoLiveData.observe(this, { redditResponse ->
             when(redditResponse) {
                 is RedditResponse.Loading -> {
@@ -117,8 +118,8 @@ class HomeActivity : AppCompatActivity(), HasAndroidInjector {
     }
 
     private fun logout() {
-        homeActivityViewModel.doLogout().observe(this, { redditResponse ->
-            when(redditResponse) {
+        homeActivityViewModel.doLogout().observe(this) { redditResponse ->
+            when (redditResponse) {
                 is RedditResponse.Loading -> {
                     Timber.d("trying logout")
                 }
@@ -131,7 +132,7 @@ class HomeActivity : AppCompatActivity(), HasAndroidInjector {
                 }
             }
 
-        })
+        }
     }
 
     private fun finishHomeActivity() {

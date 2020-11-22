@@ -5,7 +5,7 @@ import android.view.View
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.paging.PagedListEpoxyController
 import com.bumptech.glide.RequestManager
-import com.diraj.kreddit.network.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.epoxy.models.ErrorEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.FeedEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.LoadingEpoxyViewModel_
@@ -86,8 +86,8 @@ class HomeFeedEpoxyController(
                 super.addModels(
                     models.plus(
                         LoadingEpoxyViewModel_()
-                            .id(if(models.isEmpty())"LoadingEpoxyViewModel_Initial"
-                            else "LoadingEpoxyViewModel_Next${UUID.randomUUID()}")
+                            .id(if(models.isEmpty())"LoadingEpoxyViewModel_InitialLoadId"
+                            else "LoadingEpoxyViewModel_PageLoadId")
                     ).distinct()
                 )
             }

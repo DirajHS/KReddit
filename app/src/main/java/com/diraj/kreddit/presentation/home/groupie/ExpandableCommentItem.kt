@@ -8,10 +8,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.models.CommentsData
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_DISLIKE
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_LIKE
 import com.diraj.kreddit.databinding.ItemExpandableCommentBinding
-import com.diraj.kreddit.network.models.CommentsData
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
-import com.diraj.kreddit.utils.KRedditConstants
 import com.diraj.kreddit.utils.fromHtml
 import com.diraj.kreddit.utils.getPrettyCount
 import com.xwray.groupie.ExpandableGroup
@@ -54,7 +55,8 @@ class ExpandableCommentItem constructor(
         setLikeDislikeClickListener()
         setLikeDislikeState(comment)
         setReplyClickListener()
-        sharedViewModel.commentsLikeDisLikeMapping[comment.name]?.observe(viewLifecycleOwner, commentsLikesDislikesObserver)
+        sharedViewModel.commentsLikeDisLikeMapping[comment.name]?.observe(viewLifecycleOwner,
+            commentsLikesDislikesObserver)
     }
 
     override fun setExpandableGroup(onToggleListener: ExpandableGroup) {
@@ -136,11 +138,13 @@ class ExpandableCommentItem constructor(
     private fun setLikeDislikeClickListener() {
         expandableCommentBinding.btnUpvote.setOnClickListener {
             Timber.d("clicked like")
-            sharedViewModel.voteComment(KRedditConstants.CLICKED_LIKE, comment).observe(viewLifecycleOwner, commentsLikesDislikesObserver)
+            sharedViewModel.voteComment(CLICKED_LIKE, comment).observe(viewLifecycleOwner,
+                commentsLikesDislikesObserver)
         }
         expandableCommentBinding.btnDownVote.setOnClickListener {
             Timber.d("clicked dislike")
-            sharedViewModel.voteComment(KRedditConstants.CLICKED_DISLIKE, comment).observe(viewLifecycleOwner, commentsLikesDislikesObserver)
+            sharedViewModel.voteComment(CLICKED_DISLIKE, comment).observe(viewLifecycleOwner,
+                commentsLikesDislikesObserver)
         }
     }
 
