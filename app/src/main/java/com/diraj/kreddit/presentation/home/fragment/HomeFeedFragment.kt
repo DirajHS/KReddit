@@ -1,8 +1,6 @@
 package com.diraj.kreddit.presentation.home.fragment
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,24 +9,23 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
+import androidx.paging.PagedList
 import com.diraj.kreddit.R
-import com.diraj.kreddit.data.models.RedditObject
-import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_DISLIKE
 import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_LIKE
 import com.diraj.kreddit.databinding.LayoutHomeFeedFragmentBinding
-import com.diraj.kreddit.di.GlideApp
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
 import com.diraj.kreddit.presentation.home.epoxy.controllers.HomeFeedEpoxyController
 import com.diraj.kreddit.presentation.home.viewmodel.HomeFeedViewModel
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
 import com.diraj.kreddit.utils.androidLazy
-import com.diraj.kreddit.utils.getViewModel
 import com.diraj.kreddit.utils.sharedViewModel
 import com.google.android.material.transition.Hold
 import com.google.android.material.transition.MaterialElevationScale
@@ -38,15 +35,14 @@ import javax.inject.Inject
 
 class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
-    @field:Inject
-    lateinit var viewModelFactory: ViewModelFactory<HomeFeedViewModel>
+    @Inject
+    lateinit var homeFeedViewModel: HomeFeedViewModel
 
-    @field:Inject
+    @Inject
     lateinit var sharedViewModelFactory: ViewModelFactory<SharedViewModel>
 
-    private val homeFeedViewModel by androidLazy {
-        getViewModel<HomeFeedViewModel>(viewModelFactory)
-    }
+    @Inject
+    lateinit var feedPagedEpoxyController: HomeFeedEpoxyController
 
     private val sharedViewModel by androidLazy {
         sharedViewModel<SharedViewModel>(sharedViewModelFactory)
@@ -54,27 +50,26 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
     private lateinit var layoutHomeFeedFragmentBinding: LayoutHomeFeedFragmentBinding
 
-    private lateinit var feedPagedEpoxyController: HomeFeedEpoxyController
-    private lateinit var handler: Handler
-
     private val tabNavHostFragment: NavHostFragment
         get() = childFragmentManager.findFragmentById(R.id.tablet_nav_container) as NavHostFragment
+
+    private val feedAPIStateObserver = Observer<RedditResponse> { redditResponse ->
+        processFeedApiState(redditResponse)
+    }
+
+    private val feedDataObserver = Observer<PagedList<RedditObjectDataWithoutReplies>> {
+        Timber.d("submitting feed list")
+        feedPagedEpoxyController.submitList(it)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         Timber.d("onCreateView")
         return if(!::layoutHomeFeedFragmentBinding.isInitialized) {
             layoutHomeFeedFragmentBinding = LayoutHomeFeedFragmentBinding.inflate(inflater, container, false)
-
-            val glideRequestManager = GlideApp.with(this)
-            val handlerThread = HandlerThread("epoxy")
-            handlerThread.start()
-            handler = Handler(handlerThread.looper)
-            feedPagedEpoxyController = HomeFeedEpoxyController({ homeFeedViewModel.retry() }, handler, this, glideRequestManager)
-            feedPagedEpoxyController.isDebugLoggingEnabled = true
 
             layoutHomeFeedFragmentBinding.ervFeed.setController(feedPagedEpoxyController)
             layoutHomeFeedFragmentBinding.root
@@ -99,7 +94,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
         setRefreshListener()
     }
 
-    override fun onFeedItemClicked(view: View, redditObject: RedditObjectData.RedditObjectDataWithoutReplies) {
+    override fun onFeedItemClicked(view: View, redditObject: RedditObjectDataWithoutReplies) {
         when(view.id) {
             R.id.iv_thumb_up -> {
                 sharedViewModel.vote(CLICKED_LIKE, redditObject)
@@ -115,7 +110,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
                 reenterTransition = MaterialElevationScale(true).apply {
                     duration = resources.getInteger(R.integer.motion_duration_small).toLong()
                 }
-                doNavigateToDestination(view, RedditObject("", redditObject))
+                doNavigateToDestination(view, redditObject)
             }
         }
     }
@@ -133,41 +128,32 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
 
     private fun observeFeedData() {
         Timber.d("observeFeedData")
-        homeFeedViewModel.pagedFeedList.observe(viewLifecycleOwner, {
-            Timber.d("submitting feed list")
-            feedPagedEpoxyController.submitList(it)
-        })
+        homeFeedViewModel.pagedFeedList.observe(viewLifecycleOwner, feedDataObserver)
     }
 
     private fun observeFeedApiState() {
         Timber.d("observeFeedApiState")
-        homeFeedViewModel.getFeedApiState().observe(viewLifecycleOwner, {
-            if(!homeFeedViewModel.listIsEmpty()) {
-                when (it) {
-                    is RedditResponse.Loading -> {
-                        feedPagedEpoxyController.error = null
-                        feedPagedEpoxyController.isLoading = true
-                    }
-                    is RedditResponse.Success<*> -> {
-                        feedPagedEpoxyController.error = null
-                        feedPagedEpoxyController.isLoading = false
-                    }
-                    is RedditResponse.Error -> {
-                        feedPagedEpoxyController.isLoading = false
-                        feedPagedEpoxyController.error = getErrorText(redditResponse = it)
-                    }
-                }
-            }
+        homeFeedViewModel.getFeedApiState().observe(viewLifecycleOwner, feedAPIStateObserver)
+    }
 
-            layoutHomeFeedFragmentBinding.loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
-                    it == RedditResponse.Loading)
-            layoutHomeFeedFragmentBinding.errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
-                    it is RedditResponse.Error)
-            if(layoutHomeFeedFragmentBinding.errorView.root.isVisible) {
-                feedPagedEpoxyController.error = getErrorText(it as RedditResponse.Error)
-            }
-            layoutHomeFeedFragmentBinding.swipeRefreshLayout.isRefreshing = (it == RedditResponse.Loading)
-        })
+    private fun processFeedApiState(redditResponse: RedditResponse) {
+        if(!homeFeedViewModel.listIsEmpty()) {
+            feedPagedEpoxyController.error = if(redditResponse is RedditResponse.Error)
+                getErrorText(redditResponse) else null
+            feedPagedEpoxyController.isLoading = redditResponse is RedditResponse.Loading
+        }
+
+        layoutHomeFeedFragmentBinding.apply {
+            loadingView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
+                    redditResponse == RedditResponse.Loading)
+            errorView.root.isVisible = (homeFeedViewModel.listIsEmpty() &&
+                    redditResponse is RedditResponse.Error)
+            swipeRefreshLayout.isRefreshing = (redditResponse == RedditResponse.Loading)
+        }
+
+        if(layoutHomeFeedFragmentBinding.errorView.root.isVisible) {
+            feedPagedEpoxyController.error = getErrorText(redditResponse as RedditResponse.Error)
+        }
     }
 
     private fun handleRetryClick() {
@@ -188,7 +174,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun doNavigateToDestination(view: View, redditObject: RedditObject) {
+    private fun doNavigateToDestination(view: View, redditObject: RedditObjectDataWithoutReplies) {
         val isTablet = requireContext().resources.getBoolean(R.bool.isTablet)
 
         when {
@@ -198,7 +184,7 @@ class HomeFeedFragment: Fragment(), Injectable, IFeedClickListener {
             }
             else -> {
                 val extras = FragmentNavigatorExtras((view
-                        to (redditObject.data as RedditObjectData.RedditObjectDataWithoutReplies).thumbnail)
+                        to redditObject.thumbnail)
                         as Pair<View, String>)
                 findNavController().navigate(HomeFeedFragmentDirections
                     .actionHomeFeedFragmentToHomeFeedDetailsFragment(redditObject), extras)

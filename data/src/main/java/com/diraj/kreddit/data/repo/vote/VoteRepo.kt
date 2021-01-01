@@ -1,7 +1,7 @@
 package com.diraj.kreddit.data.repo.vote
 
 import com.diraj.kreddit.data.db.KRedditDB
-import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.data.models.post.VoteModel
 import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.data.repo.vote.api.VoteAPIService
@@ -38,7 +38,7 @@ class VoteRepo @Inject constructor(private val redditRetrofit: Retrofit,
         return RedditResponse.Error(IllegalArgumentException("VoteModel is null"))
     }
 
-    fun updateDBAfterVote(updatedRedditObjectData: RedditObjectData.RedditObjectDataWithoutReplies) {
+    fun updateDBAfterVote(updatedRedditObjectData: RedditObjectDataWithoutReplies) {
         kRedditDB.kredditPostsDAO().updateRedditFeed(updatedRedditObjectData)
     }
 }

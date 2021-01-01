@@ -28,11 +28,11 @@ class RedditObjectDataSerializer : KSerializer<RedditObjectData> {
         val element = decoder.decodeJsonElement()
         // JsonElement -> value
         if (element is JsonObject && (element["replies"] == null || element["replies"]!! is JsonPrimitive)) {
-            return decoder.json.decodeFromJsonElement<RedditObjectData.RedditObjectDataWithoutReplies>(
+            return RedditObjectData.WithoutReplies(decoder.json.decodeFromJsonElement(
                 element
-            )
+            ))
         }
-        return decoder.json.decodeFromJsonElement<RedditObjectData.RedditObjectDataWithReplies>(element)
+        return RedditObjectData.WithReplies(decoder.json.decodeFromJsonElement(element))
     }
 
     override fun serialize(encoder: Encoder, value: RedditObjectData) {
@@ -40,8 +40,8 @@ class RedditObjectDataSerializer : KSerializer<RedditObjectData> {
         require(encoder is JsonEncoder) // This class can be encoded only by Json
         // value -> JsonElement
         val element = when (value) {
-            is RedditObjectData.RedditObjectDataWithReplies -> encoder.json.encodeToJsonElement(value)
-            is RedditObjectData.RedditObjectDataWithoutReplies -> encoder.json.encodeToJsonElement(value)
+            is RedditObjectData.WithReplies -> encoder.json.encodeToJsonElement(value)
+            is RedditObjectData.WithoutReplies -> encoder.json.encodeToJsonElement(value)
         }
         // JsonElement -> JsonEncoder
         encoder.encodeJsonElement(element)

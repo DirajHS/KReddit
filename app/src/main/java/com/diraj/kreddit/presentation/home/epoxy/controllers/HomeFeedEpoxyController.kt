@@ -5,7 +5,7 @@ import android.view.View
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.paging.PagedListEpoxyController
 import com.bumptech.glide.RequestManager
-import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.presentation.home.epoxy.models.ErrorEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.FeedEpoxyViewModel_
 import com.diraj.kreddit.presentation.home.epoxy.models.LoadingEpoxyViewModel_
@@ -15,7 +15,7 @@ import java.util.*
 class HomeFeedEpoxyController(
     private val retryClickListener: View.OnClickListener,
     asyncDiffHandler: Handler, private val feedClickListener: IFeedClickListener,
-    private val glideRequestManager: RequestManager): PagedListEpoxyController<RedditObjectData.RedditObjectDataWithoutReplies>(
+    private val glideRequestManager: RequestManager) : PagedListEpoxyController<RedditObjectDataWithoutReplies>(
     defaultModelBuildingHandler, asyncDiffHandler) {
 
     private var isError: Boolean = false
@@ -42,7 +42,8 @@ class HomeFeedEpoxyController(
             }
         }
 
-    override fun buildItemModel(currentPosition: Int, item: RedditObjectData.RedditObjectDataWithoutReplies?): EpoxyModel<*> {
+    override fun buildItemModel(currentPosition: Int, item: RedditObjectDataWithoutReplies?):
+            EpoxyModel<*> {
         /*
         We can construct models based on position for different types from RedditObjectData here.
         For now we are showing only image feed, later when we integrate ExoPlayer to play GIF's and

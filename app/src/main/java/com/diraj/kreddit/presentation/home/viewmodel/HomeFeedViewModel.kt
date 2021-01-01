@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import com.diraj.kreddit.data.db.KRedditDB
-import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.data.repo.home.HomeFeedBoundaryCallback
 import com.diraj.kreddit.data.repo.home.HomeFeedRepo
 import com.diraj.kreddit.data.utils.DataLayerConstants.POSTS_PAGE_SIZE
@@ -32,7 +32,7 @@ class HomeFeedViewModel @Inject constructor(private val homeFeedBoundaryCallback
 
     private val dataSource = kredditDB.kredditPostsDAO().posts()
 
-    val pagedFeedList: LiveData<PagedList<RedditObjectData.RedditObjectDataWithoutReplies>> =
+    val pagedFeedList: LiveData<PagedList<RedditObjectDataWithoutReplies>> =
         LivePagedListBuilder(dataSource, config)
             .setBoundaryCallback(homeFeedBoundaryCallback)
             .build()

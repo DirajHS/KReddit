@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diraj.kreddit.data.models.CommentsData
-import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.data.repo.vote.VoteRepo
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +29,7 @@ class SharedViewModel @Inject constructor(private val voteRepo: VoteRepo) : View
         return likesUpdateLiveData
     }
 
-    fun vote(clickedBtnType: String, redditObjectDataWithoutReplies: RedditObjectData.RedditObjectDataWithoutReplies) {
+    fun vote(clickedBtnType: String, redditObjectDataWithoutReplies: RedditObjectDataWithoutReplies) {
         viewModelScope.launch(context = Dispatchers.IO) {
             val voteModel = redditObjectDataWithoutReplies.getVoteModelToPost(clickedBtnType)
             when(voteRepo.doVote(voteModel)) {

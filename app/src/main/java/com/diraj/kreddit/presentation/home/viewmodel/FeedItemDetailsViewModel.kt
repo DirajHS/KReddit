@@ -5,6 +5,7 @@ import com.diraj.kreddit.data.models.RedditObjectData
 import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.data.repo.details.FeedItemDetailsRepo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -30,6 +31,7 @@ class FeedItemDetailsViewModel @Inject constructor(
     fun fetchFeedByName(feedName: String) {
         feedDetailsByNameLiveData = feedItemDetailsRepo
             .getFeedByName(feedName)
+            .map { RedditObjectData.WithoutReplies(it) }
             .asLiveData(viewModelScope.coroutineContext)
     }
 }

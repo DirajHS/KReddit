@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import com.diraj.kreddit.data.db.KRedditDB
 import com.diraj.kreddit.data.models.BaseModel
 import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.data.repo.home.api.HomeAPIService
 import com.diraj.kreddit.data.utils.DataLayerConstants.POSTS_PAGE_SIZE
@@ -30,11 +31,11 @@ class HomeFeedRepo @Inject constructor(private val kRedditDB: KRedditDB,
     }
 
     private fun insertFeed(baseModel: BaseModel) {
-        val redditFeedList = mutableListOf<RedditObjectData.RedditObjectDataWithoutReplies>()
+        val redditFeedList = mutableListOf<RedditObjectDataWithoutReplies>()
         val start = kRedditDB.kredditPostsDAO().getNextIndexInReddit()
         baseModel.data.children.mapIndexed { index, redditObject ->
             val redditObjectData = (redditObject.data
-                    as RedditObjectData.RedditObjectDataWithoutReplies).copy(indexInResponse = start + index)
+                    as RedditObjectData.WithoutReplies).redditObjectDataWithoutReplies.copy(indexInResponse = start + index)
             redditObjectData
         }.forEach {
             redditFeedList.add(it)

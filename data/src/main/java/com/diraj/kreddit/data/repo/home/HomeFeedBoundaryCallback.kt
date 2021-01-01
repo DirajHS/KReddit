@@ -5,6 +5,7 @@ import androidx.paging.PagedList
 import com.diraj.kreddit.data.db.KRedditDB
 import com.diraj.kreddit.data.models.BaseModel
 import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import com.diraj.kreddit.data.network.RedditResponse
 import com.diraj.kreddit.data.repo.home.api.HomeAPIService
 import com.diraj.kreddit.data.utils.PagingRequestHelper
@@ -19,10 +20,10 @@ import javax.inject.Inject
 
 class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KRedditDB,
                                kredditRetrofit: Retrofit):
-    PagedList.BoundaryCallback<RedditObjectData.RedditObjectDataWithoutReplies>() {
+    PagedList.BoundaryCallback<RedditObjectDataWithoutReplies>() {
 
     private val executor = Executors.newSingleThreadExecutor()
-    private val helper = com.diraj.kreddit.data.utils.PagingRequestHelper(executor)
+    private val helper = PagingRequestHelper(executor)
 
     val feedApiStateLiveData = MutableLiveData<RedditResponse>()
     private val redditAPIService: HomeAPIService = kredditRetrofit.create(HomeAPIService::class.java)
@@ -39,12 +40,12 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
         }
     }
 
-    override fun onItemAtEndLoaded(itemAtEnd: RedditObjectData.RedditObjectDataWithoutReplies) {
-        super.onItemAtEndLoaded(itemAtEnd)
+    override fun onItemAtEndLoaded(redditObjectDataWithoutReplies: RedditObjectDataWithoutReplies) {
+        super.onItemAtEndLoaded(redditObjectDataWithoutReplies)
         helper.runIfNotRunning(PagingRequestHelper.RequestType.AFTER) { helperCallback ->
             feedApiStateLiveData.postValue(RedditResponse.Loading)
             coroutineScope.launch(context = Dispatchers.IO) {
-                fetchHomeFeed(itemAtEnd.name, helperCallback)
+                fetchHomeFeed(redditObjectDataWithoutReplies.name, helperCallback)
             }
         }
     }
@@ -66,11 +67,12 @@ class HomeFeedBoundaryCallback @Inject constructor(private val kRedditDB: KReddi
     }
 
     private fun insertFeed(baseModel: BaseModel) {
-        val redditFeedList = mutableListOf<RedditObjectData.RedditObjectDataWithoutReplies>()
+        val redditFeedList = mutableListOf<RedditObjectDataWithoutReplies>()
         val start = kRedditDB.kredditPostsDAO().getNextIndexInReddit()
         baseModel.data.children.mapIndexed { index, redditObject ->
-            val redditObjectData = (redditObject.data
-                    as RedditObjectData.RedditObjectDataWithoutReplies).copy(indexInResponse = start + index)
+            val redditObjectData = (redditObject.data as RedditObjectData.WithoutReplies)
+                .redditObjectDataWithoutReplies
+                .copy(indexInResponse = start + index)
             redditObjectData
         }.forEach {
                 redditFeedList.add(it)

@@ -5,16 +5,17 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.diraj.kreddit.data.db.dao.KRedditPostsDAO
-import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
 import kotlinx.serialization.json.Json
 
-@Database(entities = [RedditObjectData.RedditObjectDataWithoutReplies::class], version = 4, exportSchema = false)
+@Database(entities = [RedditObjectDataWithoutReplies::class], version = 4, exportSchema = false)
 abstract class KRedditDB: RoomDatabase() {
 
     abstract fun kredditPostsDAO(): KRedditPostsDAO
 
     companion object {
         private lateinit var INSTANCE: KRedditDB
+        private const val DB_NAME = "kreddit.db"
 
         lateinit var jsonConverter: Json
 
@@ -26,7 +27,7 @@ abstract class KRedditDB: RoomDatabase() {
             if(!::INSTANCE.isInitialized) {
                 INSTANCE = Room.databaseBuilder(
                     applicationContext, KRedditDB::class.java,
-                    "kreddit.db")
+                    DB_NAME)
                     .fallbackToDestructiveMigration()
                     .build()
             }

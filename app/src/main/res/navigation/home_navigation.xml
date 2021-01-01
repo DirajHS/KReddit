@@ -17,7 +17,7 @@
             app:popExitAnim="@anim/anim_exit">
             <argument
                 android:name="redditObject"
-                app:argType="com.diraj.kreddit.data.models.RedditObject" />
+                app:argType="com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies" />
         </action>
     </fragment>
 
