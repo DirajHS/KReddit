@@ -10,10 +10,10 @@ import dagger.android.ContributesAndroidInjector
 abstract class HomeActivityModule {
 
     @PerFragment
-    @ContributesAndroidInjector
+    @ContributesAndroidInjector(modules = [HomeFeedFragmentModule::class])
     abstract fun providesHomeFeedFragment(): HomeFeedFragment
 
     @PerFragment
-    @ContributesAndroidInjector
+    @ContributesAndroidInjector(modules = [DetailsFragmentModule::class])
     abstract fun providesHomeFeedDetailsFragment(): HomeFeedDetailsFragment
 }

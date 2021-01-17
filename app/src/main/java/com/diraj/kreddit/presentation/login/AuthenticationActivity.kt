@@ -6,18 +6,20 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.network.RedditResponse
+import com.diraj.kreddit.data.user.UserSession
+import com.diraj.kreddit.data.utils.DataLayerConstants.AUTH_URL
+import com.diraj.kreddit.data.utils.DataLayerConstants.STATE
 import com.diraj.kreddit.databinding.ActivityAuthenticationBinding
 import com.diraj.kreddit.di.ViewModelFactory
-import com.diraj.kreddit.network.RedditResponse
 import com.diraj.kreddit.presentation.home.HomeActivity
 import com.diraj.kreddit.presentation.login.viewmodel.AuthenticationViewModel
-import com.diraj.kreddit.utils.KRedditConstants.AUTH_URL
-import com.diraj.kreddit.utils.KRedditConstants.STATE
-import com.diraj.kreddit.utils.UserSession
 import dagger.android.support.DaggerAppCompatActivity
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import timber.log.Timber
 import javax.inject.Inject
 
+@ExperimentalCoroutinesApi
 class AuthenticationActivity : DaggerAppCompatActivity() {
 
     @field:Inject
@@ -29,7 +31,8 @@ class AuthenticationActivity : DaggerAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        authenticationViewModel = ViewModelProvider(this, viewModelFactory).get(AuthenticationViewModel::class.java)
+        authenticationViewModel = ViewModelProvider(this,
+            viewModelFactory).get(AuthenticationViewModel::class.java)
         activityAuthenticationBinding = ActivityAuthenticationBinding.inflate(layoutInflater)
         setContentView(activityAuthenticationBinding.root)
 

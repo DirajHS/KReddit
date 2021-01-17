@@ -16,22 +16,23 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.models.CommentsData
+import com.diraj.kreddit.data.models.RedditObjectData
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
+import com.diraj.kreddit.data.network.RedditResponse
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_DISLIKE
+import com.diraj.kreddit.data.utils.DataLayerConstants.CLICKED_LIKE
 import com.diraj.kreddit.databinding.LayoutFeedItemDetailsFragmentBinding
-import com.diraj.kreddit.di.GlideApp
+import com.diraj.kreddit.di.GlideRequests
 import com.diraj.kreddit.di.Injectable
 import com.diraj.kreddit.di.ViewModelFactory
-import com.diraj.kreddit.network.RedditResponse
-import com.diraj.kreddit.network.models.CommentsData
-import com.diraj.kreddit.network.models.RedditObject
-import com.diraj.kreddit.network.models.RedditObjectData
 import com.diraj.kreddit.presentation.home.groupie.ExpandableCommentGroup
 import com.diraj.kreddit.presentation.home.viewmodel.FeedItemDetailsViewModel
 import com.diraj.kreddit.presentation.home.viewmodel.SharedViewModel
-import com.diraj.kreddit.utils.KRedditConstants.CLICKED_DISLIKE
-import com.diraj.kreddit.utils.KRedditConstants.CLICKED_LIKE
 import com.diraj.kreddit.utils.KRedditConstants.FEED_DETAILS_MOTION_PROGRESS_KEY
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.KRedditConstants.REDDIT_OBJECT_PARCELABLE_KEY
@@ -51,11 +52,14 @@ import javax.inject.Inject
 
 class HomeFeedDetailsFragment: Fragment(), Injectable {
 
-    @field:Inject
+    @Inject
     lateinit var viewModelFactory: ViewModelFactory<FeedItemDetailsViewModel>
 
-    @field:Inject
+    @Inject
     lateinit var sharedViewModelFactory: ViewModelFactory<SharedViewModel>
+
+    @Inject
+    lateinit var glideRequests: GlideRequests
 
     private val feedItemDetailsViewModel by androidLazy {
         getViewModel<FeedItemDetailsViewModel>(viewModelFactory)
@@ -70,8 +74,11 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     private lateinit var layoutFeedItemDetailsFragmentBinding: LayoutFeedItemDetailsFragmentBinding
 
-    private var redditObject: RedditObject ?= null
-    private var redditObjectDataWithoutReplies: RedditObjectData.RedditObjectDataWithoutReplies ?= null
+    private var redditObjectDataWithoutReplies: RedditObjectDataWithoutReplies ?= null
+
+    private val commentsResponseObserver = Observer<RedditResponse> { redditResponse ->
+        processCommentsResponse(redditResponse)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         sharedElementEnterTransition = MaterialContainerTransform().apply {
@@ -80,15 +87,14 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             isElevationShadowEnabled = true
         }
         super.onCreate(savedInstanceState)
-        redditObject = arguments?.getParcelable(REDDIT_OBJECT_PARCELABLE_KEY)
-        redditObjectDataWithoutReplies = redditObject?.data as RedditObjectData.RedditObjectDataWithoutReplies
+        redditObjectDataWithoutReplies = arguments?.getParcelable(REDDIT_OBJECT_PARCELABLE_KEY)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         layoutFeedItemDetailsFragmentBinding = LayoutFeedItemDetailsFragmentBinding.inflate(inflater,
             container, false)
 
@@ -143,24 +149,30 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     private fun fetchAndObserveFeedComments() {
         redditObjectDataWithoutReplies?.permalink?.let { permaLink ->
             feedItemDetailsViewModel.fetchFeedItemDetails(permaLink)
-            feedItemDetailsViewModel.feedDetailsLiveData.observe(viewLifecycleOwner, { redditResponse ->
-                when(redditResponse) {
-                    is RedditResponse.Loading -> {
-                        Timber.d("loading comments")
-                        //show loader only if no comments are added
-                        if(groupAdapter.groupCount <= 0)
-                            toggleCommentsFeedStatusVisibility(commentsVisibility = false, loadingVisibility = true, errorVisibility = false)
-                    }
-                    is RedditResponse.Success<*> -> {
-                        handleCommentsFetchSuccess(redditResponse)
-                    }
-                    is RedditResponse.Error -> {
-                        if(layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible)
-                            layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible = false
-                        handleCommentsFetchError(permaLink, redditResponse)
-                    }
+        }
+        feedItemDetailsViewModel.feedDetailsLiveData.observe(viewLifecycleOwner,
+            commentsResponseObserver)
+    }
+
+    private fun processCommentsResponse(redditResponse: RedditResponse) {
+        redditObjectDataWithoutReplies?.permalink?.let { permaLink ->
+            when(redditResponse) {
+                is RedditResponse.Loading -> {
+                    Timber.d("loading comments")
+                    //show loader only if no comments are added
+                    if(groupAdapter.groupCount <= 0)
+                        toggleCommentsFeedStatusVisibility(commentsVisibility = false,
+                            loadingVisibility = true, errorVisibility = false)
                 }
-            })
+                is RedditResponse.Success<*> -> {
+                    handleCommentsFetchSuccess(redditResponse)
+                }
+                is RedditResponse.Error -> {
+                    if(layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible)
+                        layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible = false
+                    handleCommentsFetchError(permaLink, redditResponse)
+                }
+            }
         }
     }
 
@@ -172,27 +184,34 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
             however, from client side, we can make sure that we are updating details page with non-null data only.
              */
             redditObject?.let {
-                redditObjectDataWithoutReplies = it as RedditObjectData.RedditObjectDataWithoutReplies
+                redditObjectDataWithoutReplies = (it as RedditObjectData.WithoutReplies)
+                    .redditObjectDataWithoutReplies
                 setLikeDislikeState()
                 renderFeedDetailsImage()
                 handleLikeDislikeClick()
-                redditObjectDataWithoutReplies?.subredditNamePrefixed?.let { subReddit -> redditObjectDataWithoutReplies?.author?.let { author ->
+                redditObjectDataWithoutReplies?.subredditNamePrefixed?.let { subReddit ->
+                    redditObjectDataWithoutReplies?.author?.let { author ->
                     setSubredditWithAuthorSpanned(subReddit, String.format(requireContext().getString(R.string.reddit_author_prefixed), author))
                 } }
-                layoutFeedItemDetailsFragmentBinding.tvDetailTitle.text = redditObjectDataWithoutReplies?.title
-                layoutFeedItemDetailsFragmentBinding.tvDomain.text = redditObjectDataWithoutReplies?.getDomain()
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvUps.text = redditObjectDataWithoutReplies?.ups?.getPrettyCount()
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvComments.text = redditObjectDataWithoutReplies?.numComments?.getPrettyCount()
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
-                    .format(redditObjectDataWithoutReplies?.createdUtc?.toLong()?.times(1000L)?.let { createdUtc -> Date(createdUtc) })
+                layoutFeedItemDetailsFragmentBinding.apply {
+                    tvDetailTitle.text = redditObjectDataWithoutReplies?.title
+                    tvDomain.text = redditObjectDataWithoutReplies?.getDomain()
+                    inclFeedActions.tvUps.text = redditObjectDataWithoutReplies?.ups
+                        ?.getPrettyCount()
+                    inclFeedActions.tvComments.text = redditObjectDataWithoutReplies?.numComments
+                        ?.getPrettyCount()
+                    inclFeedActions.tvTime.text = PrettyTime(Locale.getDefault())
+                        .format(redditObjectDataWithoutReplies?.createdUtc?.toLong()
+                            ?.times(1000L)?.let { createdUtc -> Date(createdUtc) })
+                }
 
-                handleDomainClick()
+                handleDomainClick(it)
             }
         })
     }
 
     private fun renderFeedDetailsImage() {
-        (redditObject?.data as? RedditObjectData.RedditObjectDataWithoutReplies)?.preview?.images?.first()?.source?.let { source ->
+        redditObjectDataWithoutReplies?.preview?.images?.first()?.source?.let { source ->
             layoutFeedItemDetailsFragmentBinding.ivDetailImage.visibility = View.VISIBLE
             ConstraintSet().apply {
                 clone(layoutFeedItemDetailsFragmentBinding.clFeedDetails)
@@ -201,9 +220,8 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
                 }
                 applyTo(layoutFeedItemDetailsFragmentBinding.clFeedDetails)
             }
-            GlideApp.with(this)
+            glideRequests
                 .load(source.url?.replace(FEED_THUMBNAIL_URL_REPLACEMENT_KEY, ""))
-                .thumbnail(0.1f)
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(layoutFeedItemDetailsFragmentBinding.ivDetailImage)
         } ?: run {
@@ -211,8 +229,9 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
         }
     }
 
-    private fun handleDomainClick() {
-        (redditObject?.data as? RedditObjectData.RedditObjectDataWithReplies)?.urlOverriddenByDest?.let { destinationURL ->
+    private fun handleDomainClick(redditObject: RedditObjectData) {
+        (redditObject as? RedditObjectData.WithReplies)?.redditObjectDataWithReplies
+            ?.urlOverriddenByDest?.let { destinationURL ->
             layoutFeedItemDetailsFragmentBinding.llDomain.setOnClickListener {
                 val intent = Intent(ACTION_VIEW)
                 intent.data = Uri.parse(destinationURL)
@@ -237,19 +256,9 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
 
     private fun setLikeDislikeState() {
         Timber.d("ups for: ${redditObjectDataWithoutReplies?.title}: ${redditObjectDataWithoutReplies?.ups}")
-        when(redditObjectDataWithoutReplies?.likes) {
-            true -> {
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = true
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = false
-            }
-            false -> {
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = false
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = true
-            }
-            else -> {
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbUp.isSelected = false
-                layoutFeedItemDetailsFragmentBinding.inclFeedActions.ivThumbDown.isSelected = false
-            }
+        layoutFeedItemDetailsFragmentBinding.inclFeedActions.apply {
+            ivThumbUp.isSelected = redditObjectDataWithoutReplies?.likes == true
+            ivThumbDown.isSelected = redditObjectDataWithoutReplies?.likes == false
         }
     }
 
@@ -283,7 +292,8 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
         sharedViewModel.commentsLikeDisLikeMapping.forEach { entry ->
             entry.value.removeObservers(viewLifecycleOwner)
         }
-        toggleCommentsFeedStatusVisibility(commentsVisibility = true, loadingVisibility = false, errorVisibility = false)
+        toggleCommentsFeedStatusVisibility(commentsVisibility = true, loadingVisibility = false,
+            errorVisibility = false)
         val groupsList = mutableListOf<ExpandableCommentGroup>()
         (redditResponse.successData as Sequence<*>).forEach { commentsData ->
             groupsList.add(ExpandableCommentGroup(commentsData as CommentsData,
@@ -293,24 +303,32 @@ class HomeFeedDetailsFragment: Fragment(), Injectable {
     }
 
     private fun handleCommentsFetchError(permaLink: String, redditResponse: RedditResponse.Error) {
-        when(redditResponse.ex) {
-            is HttpException -> {
-                layoutFeedItemDetailsFragmentBinding.errorView.tvError.text = redditResponse.ex.message()
-            }
-            is IOException -> {
-                layoutFeedItemDetailsFragmentBinding.errorView.tvError.text = getString(R.string.generic_error_string)
+        layoutFeedItemDetailsFragmentBinding.apply {
+            when(redditResponse.ex) {
+                is HttpException -> {
+                    errorView.tvError.text = (redditResponse.ex as HttpException).message()
+                }
+                is IOException -> {
+                    errorView.tvError.text = getString(R.string.generic_error_string)
+                }
             }
         }
-        toggleCommentsFeedStatusVisibility(commentsVisibility = false, loadingVisibility = false, errorVisibility = true)
+
+        toggleCommentsFeedStatusVisibility(commentsVisibility = false, loadingVisibility = false,
+            errorVisibility = true)
         layoutFeedItemDetailsFragmentBinding.errorView.root.setOnClickListener {
             feedItemDetailsViewModel.fetchFeedItemDetails(permaLink)
         }
     }
 
-    private fun toggleCommentsFeedStatusVisibility(commentsVisibility: Boolean, loadingVisibility: Boolean, errorVisibility: Boolean) {
-        layoutFeedItemDetailsFragmentBinding.rvFeedItemComments.isVisible = commentsVisibility
-        layoutFeedItemDetailsFragmentBinding.loadingView.root.isVisible = loadingVisibility
-        layoutFeedItemDetailsFragmentBinding.errorView.root.isVisible = errorVisibility
+    private fun toggleCommentsFeedStatusVisibility(commentsVisibility: Boolean,
+                                                   loadingVisibility: Boolean,
+                                                   errorVisibility: Boolean) {
+        layoutFeedItemDetailsFragmentBinding.apply {
+            rvFeedItemComments.isVisible = commentsVisibility
+            loadingView.root.isVisible = loadingVisibility
+            errorView.root.isVisible = errorVisibility
+        }
     }
 
     companion object {

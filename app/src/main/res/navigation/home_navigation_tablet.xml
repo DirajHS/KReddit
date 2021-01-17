@@ -15,7 +15,7 @@
             app:launchSingleTop="true">
             <argument
                 android:name="redditObject"
-                app:argType="com.diraj.kreddit.network.models.RedditObject" />
+                app:argType="com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies" />
         </action>
     </fragment>
 

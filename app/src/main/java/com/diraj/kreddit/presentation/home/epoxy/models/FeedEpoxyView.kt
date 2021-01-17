@@ -17,10 +17,10 @@ import com.airbnb.epoxy.*
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.diraj.kreddit.R
+import com.diraj.kreddit.data.models.PreviewImage
+import com.diraj.kreddit.data.models.RedditObjectDataWithoutReplies
+import com.diraj.kreddit.data.models.Resolutions
 import com.diraj.kreddit.databinding.FeedListItemBinding
-import com.diraj.kreddit.network.models.PreviewImage
-import com.diraj.kreddit.network.models.RedditObjectData
-import com.diraj.kreddit.network.models.Resolutions
 import com.diraj.kreddit.presentation.home.fragment.IFeedClickListener
 import com.diraj.kreddit.utils.KRedditConstants.FEED_THUMBNAIL_URL_REPLACEMENT_KEY
 import com.diraj.kreddit.utils.fromHtml
@@ -37,7 +37,7 @@ class FeedEpoxyView @JvmOverloads constructor(
 ) : CardView(c, a, defStyleAttr) {
 
     @ModelProp
-    lateinit var redditObject: RedditObjectData.RedditObjectDataWithoutReplies
+    lateinit var redditObject: RedditObjectDataWithoutReplies
 
     var feedItemClickListener: IFeedClickListener ?= null
         @CallbackProp set
@@ -108,13 +108,15 @@ class FeedEpoxyView @JvmOverloads constructor(
 
     }
 
-    private fun renderThumbnail(defaultSource: PreviewImage, resolutions: List<Resolutions>, defaultImageViewWidth: Int) {
+    private fun renderThumbnail(defaultSource: PreviewImage, resolutions: List<Resolutions>,
+                                defaultImageViewWidth: Int) {
         var selectedSource = defaultSource
         Timber.d("max default image view width: $defaultImageViewWidth")
         Timber.d("default : ${defaultSource.width}x${defaultSource.height}")
         for(resolution in resolutions) {
             if(resolution.width <= defaultImageViewWidth) {
-                selectedSource = PreviewImage(url = resolution.url, width = resolution.width, height = resolution.height)
+                selectedSource = PreviewImage(url = resolution.url, width = resolution.width,
+                    height = resolution.height)
                 Timber.d("updating source to : ${selectedSource.width}x${selectedSource.height}")
             } else {
                 Timber.e("discarding resolution: ${resolution.width}x${resolution.height}")
@@ -129,31 +131,22 @@ class FeedEpoxyView @JvmOverloads constructor(
         }
         glideRequestManager
             .load(selectedSource.url?.replace(FEED_THUMBNAIL_URL_REPLACEMENT_KEY, ""))
-            .thumbnail(0.1f)
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(feedListItemBinding.ivFeedImage)
     }
 
 
     private fun setLikeDislikeState() {
-        feedListItemBinding.inclFeedActions.tvUps.text = redditObject.ups?.getPrettyCount()
-        feedListItemBinding.inclFeedActions.tvComments.text = redditObject.numComments?.getPrettyCount()
-        when(redditObject.likes) {
-            true -> {
-                feedListItemBinding.inclFeedActions.ivThumbUp.isSelected = true
-                feedListItemBinding.inclFeedActions.ivThumbDown.isSelected = false
-                feedListItemBinding.inclFeedActions.tvUps.setTextColor(ContextCompat.getColor(context, R.color.like_true_color))
-            }
-            false -> {
-                feedListItemBinding.inclFeedActions.ivThumbUp.isSelected = false
-                feedListItemBinding.inclFeedActions.ivThumbDown.isSelected = true
-                feedListItemBinding.inclFeedActions.tvUps.setTextColor(ContextCompat.getColor(context, R.color.like_false_color))
-            }
-            else -> {
-                feedListItemBinding.inclFeedActions.ivThumbUp.isSelected = false
-                feedListItemBinding.inclFeedActions.ivThumbDown.isSelected = false
-                feedListItemBinding.inclFeedActions.tvUps.setTextColor(ContextCompat.getColor(context, R.color.feed_title_color))
-            }
+        feedListItemBinding.apply {
+            inclFeedActions.tvUps.text = redditObject.ups?.getPrettyCount()
+            inclFeedActions.tvComments.text = redditObject.numComments?.getPrettyCount()
+        }
+        feedListItemBinding.inclFeedActions.apply {
+            ivThumbUp.isSelected = redditObject.likes == true
+            ivThumbDown.isSelected = redditObject.likes == false
+            tvUps.setTextColor(ContextCompat.getColor(context, redditObject.likes?.let { likes ->
+                if(likes) R.color.like_true_color else R.color.like_false_color
+            } ?: R.color.feed_title_color))
         }
     }
 
