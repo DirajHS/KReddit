@@ -1,6 +1,6 @@
-package com.diraj.kreddit.di
+package com.diraj.kreddit.data.di
 
-import com.diraj.kreddit.network.NetworkLayerTest
+import com.diraj.kreddit.data.network.NetworkLayerTest
 import dagger.BindsInstance
 import dagger.Component
 import dagger.android.AndroidInjector

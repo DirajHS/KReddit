@@ -1,15 +1,21 @@
-package com.diraj.kreddit.network
+package com.diraj.kreddit.data.network
 
 import android.util.Base64
-import com.diraj.kreddit.BuildConfig
+import com.diraj.kreddit.data.BuildConfig
+import com.diraj.kreddit.data.di.DaggerTestComponent
+import com.diraj.kreddit.data.di.TestNetworkModule
 import com.diraj.kreddit.data.models.AccessTokenModel
-import com.diraj.kreddit.di.DaggerTestComponent
-import com.diraj.kreddit.di.TestNetworkModule
-import com.diraj.kreddit.utils.KRedditConstants
-import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION
-import com.diraj.kreddit.utils.KRedditConstants.AUTHORIZATION_HEADER_PREFIX_BEARER
-import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_KEY
-import com.diraj.kreddit.utils.KRedditConstants.USER_AGENT_VALUE
+import com.diraj.kreddit.data.repo.auth.api.AuthAPIService
+import com.diraj.kreddit.data.repo.details.api.DetailsAPIService
+import com.diraj.kreddit.data.repo.home.api.HomeAPIService
+import com.diraj.kreddit.data.repo.profile.api.ProfileAPIService
+import com.diraj.kreddit.data.user.UserSession
+import com.diraj.kreddit.data.utils.DataLayerConstants.ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX
+import com.diraj.kreddit.data.utils.DataLayerConstants.AUTHORIZATION
+import com.diraj.kreddit.data.utils.DataLayerConstants.AUTHORIZATION_HEADER_PREFIX_BEARER
+import com.diraj.kreddit.data.utils.DataLayerConstants.MEDIA_TYPE
+import com.diraj.kreddit.data.utils.DataLayerConstants.USER_AGENT_KEY
+import com.diraj.kreddit.data.utils.DataLayerConstants.USER_AGENT_VALUE
 import com.tencent.mmkv.MMKV
 import io.mockk.every
 import io.mockk.mockkObject
@@ -18,6 +24,7 @@ import io.mockk.unmockkObject
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -37,17 +44,22 @@ import javax.inject.Named
 
 class NetworkLayerTest {
 
-    @field:Inject
+    @Inject
     lateinit var mockWebServer: MockWebServer
 
-    @field:Inject
+    @Inject
     lateinit var kredditRetrofit: Retrofit
 
-    @Inject
-    @Named("Authenticator")
+    @field:[Inject Named("Authenticator")]
     lateinit var authenticatorRetrofit: Retrofit
 
-    private lateinit var redditAPIService: RedditAPIService
+    private lateinit var homeAPIService: HomeAPIService
+
+    private lateinit var detailsAPIService: DetailsAPIService
+
+    private lateinit var profileAPIService: ProfileAPIService
+
+    private lateinit var authAPIService: AuthAPIService
 
     private lateinit var userProfileResponse: String
 
@@ -60,15 +72,18 @@ class NetworkLayerTest {
     @Before
     fun setUp() {
         DaggerTestComponent.builder().appModuleForTest(TestNetworkModule()).build().inject(this)
-        redditAPIService = kredditRetrofit.create(RedditAPIService::class.java)
+        homeAPIService = kredditRetrofit.create(HomeAPIService::class.java)
+        detailsAPIService = kredditRetrofit.create(DetailsAPIService::class.java)
+        profileAPIService = kredditRetrofit.create(ProfileAPIService::class.java)
+        authAPIService = authenticatorRetrofit.create(AuthAPIService::class.java)
 
         val mockedMMKV = mock(MMKV::class.java)
         mockedMMKVObject = mockStatic(MMKV::class.java)
         `when`(MMKV.defaultMMKV()).thenReturn(mockedMMKV)
 
-        mockkObject(com.diraj.kreddit.data.user.UserSession)
-        every { com.diraj.kreddit.data.user.UserSession.accessToken } returns "AccessToken"
-        every { com.diraj.kreddit.data.user.UserSession.refreshToken } returns "RefreshToken"
+        mockkObject(UserSession)
+        every { UserSession.accessToken } returns "AccessToken"
+        every { UserSession.refreshToken } returns "RefreshToken"
 
         json = Json {
             ignoreUnknownKeys = true
@@ -78,7 +93,7 @@ class NetworkLayerTest {
 
     @After
     fun tearDown() {
-        unmockkObject(com.diraj.kreddit.data.user.UserSession)
+        unmockkObject(UserSession)
         mockedMMKVObject.close()
     }
 
@@ -97,7 +112,7 @@ class NetworkLayerTest {
             .setBody(homeFeedResponse)
         mockWebServer.enqueue(mockedHomeFeedAPIResponse)
 
-        val homeFeedAPIResponse = redditAPIService.getHomeFeed(after = null, limit = 25)
+        val homeFeedAPIResponse = homeAPIService.getHomeFeed(after = null, limit = 25)
         mockWebServer.takeRequest()
 
         assert(homeFeedAPIResponse.data.children.size == 25)
@@ -119,13 +134,13 @@ class NetworkLayerTest {
 
         mockWebServer.enqueue(mockedUserResponse)
 
-        redditAPIService.getCurrentUserInfo()
+        profileAPIService.getCurrentUserInfo()
         val recordedRequest = mockWebServer.takeRequest()
 
         assertThat(recordedRequest.getHeader(USER_AGENT_KEY), `is`(USER_AGENT_VALUE))
         assertThat(
             recordedRequest.getHeader(AUTHORIZATION),
-            `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${com.diraj.kreddit.data.user.UserSession.accessToken}")
+            `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${UserSession.accessToken}")
         )
         return@runBlocking
     }
@@ -137,7 +152,7 @@ class NetworkLayerTest {
 
         mockkStatic(Base64::class)
         every { Base64.encodeToString(authString.toByteArray(), Base64.NO_WRAP) } returns "Base64EncodedString"
-        every { com.diraj.kreddit.data.user.UserSession.accessToken } returns "NewAccessToken"
+        every { UserSession.accessToken } returns "NewAccessToken"
 
         val invalidTokenResponse = MockResponse().setResponseCode(401)
         val authResponse = AccessTokenModel(
@@ -172,13 +187,13 @@ class NetworkLayerTest {
         // Enqueue 200 original response
         mockWebServer.enqueue(mockedHomeFeedAPIResponse)
 
-        val response = redditAPIService.getHomeFeed(after = null, limit = 25)
+        val response = homeAPIService.getHomeFeed(after = null, limit = 25)
 
         mockWebServer.takeRequest()
         mockWebServer.takeRequest()
         val retryRequest = mockWebServer.takeRequest()
         val header = retryRequest.getHeader(AUTHORIZATION)
-        assertThat(com.diraj.kreddit.data.user.UserSession.accessToken, `is`(authResponse.accessToken))
+        assertThat(UserSession.accessToken, `is`(authResponse.accessToken))
         assertThat(header, `is`("$AUTHORIZATION_HEADER_PREFIX_BEARER ${authResponse.accessToken}"))
         assert(response.data.children.size == 25)
     }
@@ -191,14 +206,14 @@ class NetworkLayerTest {
 
         mockWebServer.enqueue(MockResponse())
 
-        val postInfo = "token=${com.diraj.kreddit.data.user.UserSession.refreshToken}&token_type_hint=refresh_token"
-        val postBody = postInfo.toRequestBody(KRedditConstants.MEDIA_TYPE.toMediaTypeOrNull())
+        val postInfo = "token=${UserSession.refreshToken}&token_type_hint=refresh_token"
+        val postBody = postInfo.toRequestBody(MEDIA_TYPE.toMediaTypeOrNull())
 
-        authenticatorRetrofit.create(RedditAPIService::class.java).logout(postBody)
+        authAPIService.logout(postBody)
         val recordedRequest = mockWebServer.takeRequest()
         assertThat(recordedRequest.method, `is`("POST"))
         assertThat(recordedRequest.getHeader(USER_AGENT_KEY), `is`(USER_AGENT_VALUE))
-        assertThat(recordedRequest.getHeader(AUTHORIZATION), `is`("${KRedditConstants.ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX} Base64EncodedString"))
+        assertThat(recordedRequest.getHeader(AUTHORIZATION), `is`("$ACCESS_TOKEN_BASIC_AUTHORIZATION_PREFIX Base64EncodedString"))
     }
 
     @Test
@@ -216,7 +231,7 @@ class NetworkLayerTest {
             .setBody(homeFeedDetailsResponse)
         mockWebServer.enqueue(mockedHomeFeedAPIResponse)
 
-        val feedDetails = redditAPIService.fetchCommentsFromPermalink("/r/science/comments/iqdiie/researchers_put_people_aged_over_65_with_some/.json")
+        val feedDetails = detailsAPIService.fetchCommentsFromPermalink("/r/science/comments/iqdiie/researchers_put_people_aged_over_65_with_some/.json")
         val parsedComments = com.diraj.kreddit.data.utils.CommentsParser(feedDetails).parseComments()
 
         val firstComment = "I work in an assisted living facility in the US and can say I knew this without the use of a study.. while I work with people generally over age 80 and each one has a diagnosis of dementia already, anytime speech, occupational or physical therapy is invoked there decline slows or they even have improvement. While this is expected of therapy, this is more noticeable in families that are more interactive with those who are affected.. or put differently the more attention the person gets the “better” the dementia or more specifically the behaviors associated with- improves. Nice to have something published tho as dementia is still a very nuanced thing in the medical world... it takes a village"

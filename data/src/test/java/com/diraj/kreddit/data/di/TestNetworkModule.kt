@@ -1,7 +1,7 @@
-package com.diraj.kreddit.di
+package com.diraj.kreddit.data.di
 
-import com.diraj.kreddit.KReddit
-import com.diraj.kreddit.data.network.AccessTokenAuthenticator
+import android.content.Context
+import com.diraj.kreddit.data.network.authenticators.AccessTokenAuthenticator
 import com.diraj.kreddit.data.network.interceptors.AuthenticatorInterceptor
 import com.diraj.kreddit.data.network.interceptors.KRedditHeaderInterceptor
 import com.diraj.kreddit.data.network.interceptors.ServerResponseErrorInterceptor
@@ -27,7 +27,7 @@ class TestNetworkModule {
 
     @Provides
     @Singleton
-    fun provideMockKredditApp() = mockk<KReddit>()
+    fun provideMockContext() = mockk<Context>()
 
     private fun getOkHttpLogLevel(level: String?): HttpLoggingInterceptor.Level {
         if (level == null) return HttpLoggingInterceptor.Level.NONE
@@ -64,7 +64,7 @@ class TestNetworkModule {
         serverResponseErrorInterceptor: ServerResponseErrorInterceptor,
         kRedditHeaderInterceptor: KRedditHeaderInterceptor,
         connectionPool: ConnectionPool,
-        accessTokenAuthenticator: com.diraj.kreddit.data.network.AccessTokenAuthenticator,
+        accessTokenAuthenticator: AccessTokenAuthenticator,
     ): OkHttpClient {
 
         val builder = OkHttpClient.Builder()
